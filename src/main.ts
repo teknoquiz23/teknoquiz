@@ -48,7 +48,7 @@ function triesCounter(isCorrect: boolean) {
 
 
 
-fetchPartyInfo(randomImage).then(info => {
+fetchPartyInfo(randomImage).then(() => {
   // Dynamically generate #party-data content based on roundInfo keys
   const partyDataDiv = document.getElementById('party-data')
   if (partyDataDiv && appState.roundInfo) {
@@ -132,10 +132,10 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     </div>
   </div>
   <div id="try-again" style="display:none;">
-    <h2 style="test-align:center; color: #8b0000;">🚓 I'm sorry, you failed!</h2>
+    <h2 style="test-align:center; color: #8b0000;">🚓 I'm sorry, you failed! 🚨</h2>
     <button style="margin:0 auto;" type="button">Try again</button>
   </div>
-  <h2 style="display:none; margin:0 auto; color:#50C878" id="you-win">🎉 You win!!!</h2>
+  <h2 style="display:none; margin:0 auto; color:#50C878" id="you-win">🎉 You win!!! 🎉</h2>
 `
 
 document.getElementById('try-again')?.addEventListener('click', () => {
