@@ -1,8 +1,6 @@
 import './style.css'
-import typescriptLogo from './typescript.svg'
-import viteLogo from '/vite.svg'
-import { parties } from './parties.js'
-import { getRandomPartyImage } from './randomizeparty.js'
+import { parties } from './parties'
+import { getRandomPartyImage } from './randomizeparty.ts'
 
 
 
@@ -11,8 +9,8 @@ import { getRandomPartyImage } from './randomizeparty.js'
 const appState = {
   guessesUsed: 0,
   currentImage: null,
-  roundInfo: null,
-  correctReponses: null,
+  roundInfo: {} as { [key: string]: string },
+  correctReponses: [] as string[],
   roundImage: 1,
   maxImages: 3
 }
@@ -109,10 +107,8 @@ function validateInputValue(inputValue: string, infoObj: any): boolean {
     if (appState.roundInfo && appState.correctReponses.length === Object.keys(appState.roundInfo).length) {
       winner()
     }
-    alert(`yes: ${foundKey}`)
     return true
   } else {
-    alert('not')
     return false
   }
 }
@@ -135,7 +131,10 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       </div>
     </div>
   </div>
-  <button style="display:none; margin:0 auto;" id="try-again" type="button">Try again</button>
+  <div id="try-again" style="display:none;">
+    <h2 style="test-align:center; color: #8b0000;">🚓 I'm sorry, you failed!</h2>
+    <button style="margin:0 auto;" type="button">Try again</button>
+  </div>
   <h2 style="display:none; margin:0 auto; color:#50C878" id="you-win">🎉 You win!!!</h2>
 `
 
