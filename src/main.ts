@@ -31,9 +31,20 @@ function triesCounter(isCorrect: boolean) {
   appState.guessesUsed++
   const guessesP = document.getElementById('guesses-used')
   if (guessesP) {
-    guessesP.textContent = `${appState.guessesUsed}/10 guesses used`
+    guessesP.textContent = `${appState.guessesUsed}`
   }
   if (!isCorrect) {
+    const guessWrap = document.getElementById('guesses-wrap')
+    if (guessWrap) {
+      guessWrap.classList.remove('shake', 'text-red')
+      void guessWrap.offsetWidth // force reflow
+      guessWrap.classList.add('shake', 'text-red')
+      const removeShake = () => {
+        guessWrap.classList.remove('shake', 'text-red')
+        guessWrap.removeEventListener('animationend', removeShake)
+      }
+      guessWrap.addEventListener('animationend', removeShake)
+    }
     if (appState.guessesUsed % 3 === 0 && appState.roundImage < appState.maxImages) {
       appState.roundImage++
       const img = document.querySelector('.game img') as HTMLImageElement
@@ -121,12 +132,14 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <h1>Teknoquiz</h1>
   
   <div class="game">
-  <img src="/parties/${randomImage}-${appState.roundImage}.png" alt="Random party" style="max-width: 500px; width: 100%; border-radius: 8px; margin-bottom: 1rem;" />
+  <img src="/parties/${randomImage}-${appState.roundImage}.png" alt="Random party" style="max-width: 500px; width: 100%; border-radius: 8px; " />
+   <div id="guess-wrap">
     <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
       <input id="guess-input" type="text" placeholder="Guess party name, sound system, year or country" style="padding: 0.5em; font-size: 1em;" />
       <button id="guess-btn" type="button">Go</button>
     </div>
-    <p id="guesses-used" style="margin-bottom: 2rem;">0/10 guesses used</p>
+      <p id="guesses-wrap" style="margin-bottom: 2rem;"><span id="guesses-used">0</span>/10 guesses used</p>
+    </div>
     <div>
       <div id="party-data" style="text-align:left;" class="text-left w-full max-w-md space-y-2">
         ${getPartyDataHTML(appState.roundInfo)}
