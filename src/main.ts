@@ -19,10 +19,12 @@ const randomImage = getRandomPartyImage(parties)
 appState.currentImage = randomImage
 
 function fetchPartyInfo(partyName: string): Promise<any> {
-  return import(`/public/parties/${partyName}-info.js`).then(module => {
-    appState.roundInfo = module.info
-    return module.info
-  })
+  return fetch(`/parties/${partyName}-info.json`)
+    .then(res => res.json())
+    .then(info => {
+      appState.roundInfo = info
+      return info
+    })
 }
 
 function triesCounter(isCorrect: boolean) {

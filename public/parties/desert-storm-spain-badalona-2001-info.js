@@ -1,5 +1,0 @@
-export const info = {
-    'Year': '2001',
-    'Sound system': 'Desert Storm',
-    'Country': 'Spain'
-}
