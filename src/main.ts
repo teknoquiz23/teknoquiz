@@ -2,14 +2,20 @@ import './style.css'
 import { loadAndTriggerConfetti } from './confetti'
 import { setupRoundInfo } from './setupRoundInfo'
 
+interface AppState {
+  guessesUsed: number;
+  currentImage: string;
+  roundInfo: { [key: string]: string };
+  correctReponses: string[];
+  roundImage: number;
+  maxImages: number;
+}
 
-
-
-const appState = {
+const appState: AppState = {
   guessesUsed: 0,
   currentImage: '',
-  roundInfo: {} as { [key: string]: string },
-  correctReponses: [] as string[],
+  roundInfo: {},
+  correctReponses: [],
   roundImage: 1,
   maxImages: 3
 }
@@ -57,37 +63,40 @@ function triesCounter(isCorrect: boolean) {
   }
 }
 
-// Render HTML first
-
-document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-  <h1>🔊 Tekno Quiz</h1>
-
-  <div class="game">
-  <p>Guess the party name, sound system, year or country based on the image:</p>
-  <img src="/parties/${appState.currentImage}-${appState.roundImage}.png" alt="Random party" style="max-width: 500px; width: 100%; border-radius: 8px; " />
-   <div id="guess-wrap">
-    <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
-      <input id="guess-input" type="text" placeholder="Guess party name, sound system, year or country" style="padding: 0.5em; font-size: 1em;" />
-      <button id="guess-btn" type="button">Go</button>
-    </div>
-      <p id="round-image-counter" style="text-align: center; margin-top: 0.5rem; margin-bottom: 0;">Image ${appState.roundImage} of ${appState.maxImages}</p>
-      <p id="guesses-wrap" style="margin-bottom: 2rem; margin-top:0;"><span id="guesses-used">0</span>/10 guesses used</p>
-    </div>
-    <div>
-      <div id="party-data" style="text-align:left;" class="text-left w-full max-w-md space-y-2">
-        ${getPartyDataHTML(appState.roundInfo)}
+// --- Rendering ---
+function renderGameUI(appState: AppState) {
+  document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
+    <h1>🔊 Tekno Quiz</h1>
+    <div class="game">
+      <p>Guess the party name, sound system, year or country based on the image:</p>
+      <img src="/parties/${appState.currentImage}-${appState.roundImage}.png" alt="Random party" style="max-width: 500px; width: 100%; border-radius: 8px; " />
+      <div id="guess-wrap">
+        <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
+          <input id="guess-input" type="text" placeholder="Guess party name, sound system, year or country" style="padding: 0.5em; font-size: 1em;" />
+          <button id="guess-btn" type="button">Go</button>
+        </div>
+        <p id="round-image-counter" style="text-align: center; margin-top: 0.5rem; margin-bottom: 0;">Image ${appState.roundImage} of ${appState.maxImages}</p>
+        <p id="guesses-wrap" style="margin-bottom: 2rem; margin-top:0;"><span id="guesses-used">0</span>/10 guesses used</p>
+      </div>
+      <div>
+        <div id="party-data" style="text-align:left;" class="text-left w-full max-w-md space-y-2">
+          ${getPartyDataHTML(appState.roundInfo)}
+        </div>
       </div>
     </div>
-  </div>
-  <div id="try-again" style="display:none;">
-    <h2 style="text-align:center; color:rgb(255, 0, 0);">🚓 You failed! 🚨</h2>
-    <button id="try-again-btn" style="margin:0 auto;" type="button">Try again</button>
-  </div>
-  <h2 style="display:none; margin:0 auto; color:#50C878" id="you-win">🎉 You win!!! 🎉</h2>
-  <footer class="footer">
-  <a href="https://underave.net"><img src="/public/underave.png" alt="underave" style="max-width: 150px; width: 100%; margin: 1rem auto; display: block; border-radius: 8px;" /></a>
-  </footer>
-`
+    <div id="try-again" style="display:none;">
+      <h2 style="text-align:center; color:rgb(255, 0, 0);">🚓 You failed! 🚨</h2>
+      <button id="try-again-btn" style="margin:0 auto;" type="button">Try again</button>
+    </div>
+    <h2 style="display:none; margin:0 auto; color:#50C878" id="you-win">🎉 You win!!! 🎉</h2>
+    <footer class="footer">
+      <a href="https://underave.net"><img src="/public/underave.png" alt="underave" style="max-width: 150px; width: 100%; margin: 1rem auto; display: block; border-radius: 8px;" /></a>
+    </footer>
+  `
+}
+
+// Call rendering
+renderGameUI(appState)
 
 // Now set up event listeners and dynamic content
 const partyDataDiv = document.getElementById('party-data')
