@@ -19,7 +19,7 @@ a {
   text-decoration: inherit;
 }
 a:hover {
-  color: #535bf2;
+  color: #fff;
 }
 
 body {
@@ -36,6 +36,7 @@ body {
 h1 {
   font-size: 3.2em;
   line-height: 1.1;
+  margin-bottom: 0;
 }
 
 #app {
@@ -116,4 +117,11 @@ button:focus-visible {
 
 .text-red {
   color: #ff4d4d;
+}
+
+
+.footer {
+  border: 1px solid #444;
+  border-width: 1px 0 0 0;
+  margin-top: 40px;
 }
