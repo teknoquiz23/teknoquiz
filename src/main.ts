@@ -1,6 +1,10 @@
 import './style.css'
 import { loadAndTriggerConfetti } from './confetti'
 import { setupRoundInfo } from './setupRoundInfo'
+import { handleYearHint } from './getYearHint'
+import { getSoundHint } from './getSoundHint'
+import { getCountryHint } from './getCountryHint'
+
 
 interface AppState {
   guessesUsed: number;
@@ -61,6 +65,28 @@ function triesCounter(isCorrect: boolean) {
     if (gameDiv) gameDiv.style.display = 'none'
     if (tryAgain) tryAgain.style.display = 'block'
   }
+  if (appState.guessesUsed === 4) {
+    // Sound System or Party hint logic
+    const hintEl = document.getElementById('hint')
+    if (hintEl && !appState.correctReponses.includes('Sound system')) {
+      if (appState.roundInfo['Sound system']) {
+        hintEl.textContent = getSoundHint(appState.roundInfo)
+      } else if (appState.roundInfo['Party']) {
+        const party = appState.roundInfo['Party']
+        const wordCount = party.trim().split(/\s+/).length
+        hintEl.textContent = `The party name starts with "${party[0].toUpperCase()}" and has ${wordCount} word${wordCount > 1 ? 's' : ''}.`
+      } else {
+        hintEl.textContent = ''
+      }
+    }
+  }
+  if (appState.guessesUsed === 7) {
+    // Country hint logic
+    const hintEl = document.getElementById('hint')
+    if (hintEl && !appState.correctReponses.includes('Country')) {
+      hintEl.textContent = getCountryHint(appState.roundInfo)
+    }
+  }
 }
 
 // --- Rendering ---
@@ -70,14 +96,17 @@ function renderGameUI(appState: AppState) {
     <div class="game">
       <p>Guess the party name, sound system, year or country based on the image:</p>
       <img src="/parties/${appState.currentImage}-${appState.roundImage}.png" alt="Random party" style="max-width: 500px; width: 100%; border-radius: 8px; " />
+      
+      <p id="round-image-counter" style="text-align: center; margin:0; margin-bottom: 0; text-align: center; font-size: 12px;">Image ${appState.roundImage} of ${appState.maxImages}</p>
+      <p id="guesses-wrap" style="margin:0;margin-bottom:20px; font-size: 12px;"><span id="guesses-used">0</span>/10 guesses used</p>
       <div id="guess-wrap">
         <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
           <input id="guess-input" type="text" placeholder="Guess party name, sound system, year or country" style="padding: 0.5em; font-size: 1em;" />
           <button id="guess-btn" type="button">Go</button>
         </div>
-        <p id="round-image-counter" style="text-align: center; margin-top: 0.5rem; margin-bottom: 0;">Image ${appState.roundImage} of ${appState.maxImages}</p>
-        <p id="guesses-wrap" style="margin-bottom: 2rem; margin-top:0;"><span id="guesses-used">0</span>/10 guesses used</p>
+          
       </div>
+      <p id="hint" style="margin:0;margin-bottom: 2rem;"></p>
       <div>
         <div id="party-data" style="text-align:left;" class="text-left w-full max-w-md space-y-2">
           ${getPartyDataHTML(appState.roundInfo)}
@@ -110,6 +139,7 @@ const guessInput = document.getElementById('guess-input') as HTMLInputElement
 guessBtn?.addEventListener('click', () => {
   if (!guessInput || !appState.roundInfo) return
   const isCorrect = validateInputValue(guessInput.value, appState.roundInfo)
+  handleYearHint(isCorrect, guessInput.value, appState.roundInfo)
   triesCounter(isCorrect)
   guessInput.value = ''
 })
@@ -172,6 +202,7 @@ function validateInputValue(inputValue: string, infoObj: any): boolean {
     return false
   }
 }
+
 console.log(appState)
 
 
