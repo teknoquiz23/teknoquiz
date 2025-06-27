@@ -36,12 +36,12 @@ function shakeText(element: HTMLElement) {
 }
 
 function handleGuessResult(isCorrect: boolean) {
-  appState.guessesUsed++
-  const guessesP = document.getElementById('guesses-used')
-  if (guessesP) {
-    guessesP.textContent = `${appState.guessesUsed}`
-  }
   if (!isCorrect) {
+    appState.guessesUsed++
+    const guessesP = document.getElementById('guesses-used')
+    if (guessesP) {
+      guessesP.textContent = `${appState.guessesUsed}`
+    }
     const guessWrap = document.getElementById('guesses-wrap')
     if (guessWrap) {
       shakeText(guessWrap)
