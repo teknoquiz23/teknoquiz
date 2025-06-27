@@ -1,15 +1,19 @@
 export function getYearHintText(correctYear: number, guessYear: number): string {
   const diff = Math.abs(correctYear - guessYear)
-  if (diff > 10) {
-    return 'You are more than 10 years away from the correct year.'
+  if (diff > 20) {
+    return '🥶 Way off! More than 20 years away.'
+  } else if (diff > 10) {
+    return '❄️ You are more than 10 years away.'
   } else if (diff > 5) {
-    return 'You are within 10 years, but more than 5 years away.'
-  } else if (diff > 1) {
-    return 'You are close! Within 5 years.'
+    return '🌬️ You are within 10 years.'
+  } else if (diff > 2) {
+    return '🔥 Getting warmer! Within 5 years.'
+  } else if (diff === 2) {
+    return '✨ Very close! Just 2 years away.'
   } else if (diff === 1) {
-    return 'Very close! Just 1 year away.'
+    return '🥳 Extremely close! Just 1 year away.'
   } else {
-    return 'Correct!'
+    return '✅ Correct!'
   }
 }
 
