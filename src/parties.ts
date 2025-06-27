@@ -40,5 +40,10 @@ export const parties = [
     id: "21412532523",
     Party: "Space travel",
     Country: "Italy"
+  },
+  {
+    id: "2f2ef23f23",
+    Party: "Vendetta",
+    Country: "Italy"
   }
 ]
