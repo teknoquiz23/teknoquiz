@@ -7,7 +7,7 @@ import { getSoundHint, getCountryHint, getPartyHint, getYearHint } from './getHi
 interface AppState {
   guessesUsed: number;
   currentImage: string;
-  roundInfo: { [key: string]: string };
+  roundInfo: { [key: string]: string | string[] };
   correctReponses: string[];
   roundImage: number;
   maxImages: number;
@@ -72,6 +72,10 @@ function showNextImage(appState: AppState) {
   }
 }
 
+function getRandomSoundSystem(systems: string[]): string {
+  return systems[Math.floor(Math.random() * systems.length)]
+}
+
 function showHints(appState: AppState, isCorrect?: boolean, guessValue?: string) {
   const hintEl = document.getElementById('hint')
   // Year hint logic
@@ -84,8 +88,12 @@ function showHints(appState: AppState, isCorrect?: boolean, guessValue?: string)
   }
   // Sound System or Party hint logic
   if (appState.guessesUsed === 2 && hintEl && !appState.correctReponses.includes('Sound system')) {
-    if (appState.roundInfo['Sound system']) {
-      hintEl.textContent = getSoundHint(appState.roundInfo)
+    const soundSystems = Array.isArray(appState.roundInfo['Sound system'])
+      ? appState.roundInfo['Sound system']
+      : appState.roundInfo['Sound system'] ? [appState.roundInfo['Sound system']] : []
+    if (soundSystems.length > 0) {
+      const randomSound = getRandomSoundSystem(soundSystems)
+      hintEl.textContent = getSoundHint({ 'Sound system': randomSound })
     } else if (appState.roundInfo['Party']) {
       hintEl.textContent = getPartyHint(appState.roundInfo)
     } else {
@@ -141,12 +149,6 @@ function renderGameUI(appState: AppState) {
 renderGameUI(appState)
 
 // Now set up event listeners and dynamic content
-const partyDataDiv = document.getElementById('party-data')
-if (partyDataDiv && appState.roundInfo) {
-  partyDataDiv.innerHTML = Object.keys(appState.roundInfo)
-    .map(key => `<div><b>${key}:</b> <span class="result-${key.toLowerCase().replace(/\s+/g, '-')}"></span></div>`)
-    .join('')
-}
 const guessBtn = document.getElementById('guess-btn')
 const guessInput = document.getElementById('guess-input') as HTMLInputElement
 guessBtn?.addEventListener('click', () => {
@@ -168,17 +170,53 @@ document.getElementById('try-again-btn')?.addEventListener('click', () => {
 // Dynamically generate #party-data content based on roundInfo keys
 function getPartyDataHTML(roundInfo: any): string {
   if (!roundInfo) return ''
+  console.log('Generating party data HTML:', roundInfo)
   return Object.keys(roundInfo)
-    .map(key => `<div><b>${key}:</b> <span class="result-${key.toLowerCase().replace(/\s+/g, '-')}"></span></div>`)
+    .map(key => {
+      console.log(`Processing key: ${key}`);
+
+      if (key === 'Sound system') {
+        const sounds = Array.isArray(roundInfo[key]) ? roundInfo[key] : [roundInfo[key]]
+        console.log(`Sound systems found: ${sounds.length > 1}`);
+        
+        const label = sounds.length > 1 ? `Sound systems (${sounds.length}):` : 'Sound system:'
+        return `<div><b>${label}</b> <span class="result-sound-system"></span></div>`
+      } else {
+        return `<div><b>${key}:</b> <span class="result-${key.toLowerCase().replace(/\s+/g, '-')}"></span></div>`
+      }
+    })
     .join('')
 }
 
 function updateResultsUI() {
-  if (!Array.isArray(appState.correctReponses) || !appState.roundInfo) return
-  appState.correctReponses.forEach(key => {
-    const selector = `.result-${key.toLowerCase().replace(/\s+/g, '-')}`
+  if (!appState.roundInfo) return
+  // Always show all sound systems if present
+  if (appState.roundInfo['Sound system']) {
+    const selector = `.result-sound-system`
     const el = document.querySelector(selector)
-    if (el) el.textContent = `✅ ${appState.roundInfo[key]}`
+    if (el) {
+      const sounds = Array.isArray(appState.roundInfo['Sound system'])
+        ? appState.roundInfo['Sound system']
+        : [appState.roundInfo['Sound system']]
+      el.textContent = sounds
+        .map(sound =>
+          Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Sound system:' + sound)
+            ? `✅ ${sound}`
+            : ''
+        )
+        .join(' ')
+    }
+  }
+  if (!Array.isArray(appState.correctReponses)) return
+  appState.correctReponses.forEach(key => {
+    if (key.startsWith('Sound system:')) {
+      // Already handled above
+      return
+    } else {
+      const selector = `.result-${key.toLowerCase().replace(/\s+/g, '-')}`
+      const el = document.querySelector(selector)
+      if (el) el.textContent = `✅ ${appState.roundInfo[key]}`
+    }
   })
 }
 
@@ -196,7 +234,14 @@ function validateInputValue(inputValue: string, infoObj: any): boolean {
   if (!value) return false // Prevent empty input from matching any value
   let foundKey = null
   for (const [key, v] of Object.entries(infoObj)) {
-    if (normalize(String(v)) === value) {
+    if (key === 'Sound system' && Array.isArray(v)) {
+      for (const sound of v) {
+        if (normalize(String(sound)) === value) {
+          foundKey = key + ':' + sound // unique key for each sound
+          break
+        }
+      }
+    } else if (normalize(String(v)) === value) {
       foundKey = key
       break
     }
@@ -207,7 +252,25 @@ function validateInputValue(inputValue: string, infoObj: any): boolean {
       appState.correctReponses.push(foundKey)
       updateResultsUI()
     }
-    if (appState.roundInfo && appState.correctReponses.length === Object.keys(appState.roundInfo).length) {
+    // For sound system, check if all are guessed
+    if (
+      appState.roundInfo['Sound system'] &&
+      Array.isArray(appState.roundInfo['Sound system']) &&
+      appState.roundInfo['Sound system'].length > 1
+    ) {
+      const allGuessed = appState.roundInfo['Sound system'].every(sound =>
+        appState.correctReponses.includes('Sound system:' + sound)
+      )
+      const allOther = Object.keys(appState.roundInfo)
+        .filter(k => k !== 'Sound system')
+        .every(k => appState.correctReponses.includes(k))
+      if (allGuessed && allOther) {
+        winner()
+      }
+    } else if (
+      appState.roundInfo &&
+      appState.correctReponses.length === Object.keys(appState.roundInfo).length
+    ) {
       winner()
     }
     return true

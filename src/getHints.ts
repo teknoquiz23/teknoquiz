@@ -17,21 +17,28 @@ export function getYearHintText(correctYear: number, guessYear: number): string 
   }
 }
 
-export function getSoundHint(roundInfo: { [key: string]: string }): string {
-  const sound = roundInfo['Sound system']
-  if (sound && sound.length > 0) {
+export function getSoundHint(roundInfo: { [key: string]: string | string[] }): string {
+  const soundVal = roundInfo['Sound system']
+  let sound = ''
+  if (Array.isArray(soundVal)) {
+    sound = soundVal[0] || ''
+  } else {
+    sound = soundVal || ''
+  }
+  if (sound.length > 0) {
     const words = sound.trim().split(/\s+/)
     const masked = words.map(word => {
       if (word.length <= 1) return word.toUpperCase()
       return word.slice(0, 1).toUpperCase() + 'X'.repeat(word.length - 1)
     })
-    return `🔊 The Sound system: ${masked.join(' ')} (${words.length} word${words.length > 1 ? 's' : ''})`
+    return `🔊 Sound system hint: ${masked.join(' ')} (${words.length} word${words.length > 1 ? 's' : ''})`
   }
   return ''
 }
 
-export function getCountryHint(roundInfo: { [key: string]: string }): string {
-  const country = roundInfo['Country']
+export function getCountryHint(roundInfo: { [key: string]: string | string[] }): string {
+  const countryVal = roundInfo['Country']
+  const country = Array.isArray(countryVal) ? countryVal[0] : countryVal
   if (country && country.length > 0) {
     const wordCount = country.trim().split(/\s+/).length
     return `💡 The country starts with "${country[0].toUpperCase()}" and has ${country.length} letters and ${wordCount} word${wordCount > 1 ? 's' : ''}.`
@@ -39,8 +46,9 @@ export function getCountryHint(roundInfo: { [key: string]: string }): string {
   return ''
 }
 
-export function getPartyHint(roundInfo: { [key: string]: string }): string {
-  const party = roundInfo['Party']
+export function getPartyHint(roundInfo: { [key: string]: string | string[] }): string {
+  const partyVal = roundInfo['Party']
+  const party = Array.isArray(partyVal) ? partyVal[0] : partyVal
   if (party && party.length > 0) {
     const words = party.trim().split(/\s+/)
     const masked = words.map(word => {

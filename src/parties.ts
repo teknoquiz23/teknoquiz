@@ -1,5 +1,6 @@
 // List of party details
 export const parties = [
+  /*
   {
     id: "Dragon-Festival-2006",
     Year: "2006",
@@ -11,23 +12,23 @@ export const parties = [
     Year: "2007",
     Country: "Spain",
     Party: "New year",
-    "Sound system": "Rizomatik"
+    "Sound system": ["Rizomatik"]
   },
   {
     id: "Sound-confundent-2008",
     Year: "2008",
     Country: "Spain",
-    "Sound system": "Sound Confundent"
+    "Sound system": ["Sound Confundent"]
   },
   {
     id: "desert-storm-spain-badalona-2001",
     Year: "2001",
-    "Sound system": "Desert Storm",
+    "Sound system": ["Desert Storm"],
     Country: "Spain"
   },
   {
     id: "heretik",
-    "Sound system": "Heretik",
+    "Sound system": ["Heretik"],
     Country: "France"
   },
   {
@@ -35,15 +36,16 @@ export const parties = [
     Party: "Czechtek",
     Country: "Czech Republic",
     Year: "2005"
-    },
+  },
   {
     id: "21412532523",
     Party: "Space travel",
     Country: "Italy"
-  },
+  },*/
   {
     id: "2f2ef23f23",
     Party: "Vendetta",
-    Country: "Italy"
+    Country: "Italy",
+    "Sound system": ["Oxyde", "Trakkas"],
   }
 ]
