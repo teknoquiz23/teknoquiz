@@ -1,9 +1,7 @@
 import './style.css'
 import { loadAndTriggerConfetti } from './confetti'
 import { setupRoundInfo } from './setupRoundInfo'
-import { handleYearHint } from './getYearHint'
-import { getSoundHint } from './getSoundHint'
-import { getCountryHint } from './getCountryHint'
+import { getYearHint, getSoundHint, getCountryHint, getPartyHint, handleYearHint } from './getHints'
 
 
 interface AppState {
@@ -72,9 +70,7 @@ function triesCounter(isCorrect: boolean) {
       if (appState.roundInfo['Sound system']) {
         hintEl.textContent = getSoundHint(appState.roundInfo)
       } else if (appState.roundInfo['Party']) {
-        const party = appState.roundInfo['Party']
-        const wordCount = party.trim().split(/\s+/).length
-        hintEl.textContent = `The party name starts with "${party[0].toUpperCase()}" and has ${wordCount} word${wordCount > 1 ? 's' : ''}.`
+        hintEl.textContent = getPartyHint(appState.roundInfo)
       } else {
         hintEl.textContent = ''
       }
@@ -119,7 +115,7 @@ function renderGameUI(appState: AppState) {
     </div>
     <h2 style="display:none; margin:0 auto; color:#50C878" id="you-win">🎉 You win!!! 🎉</h2>
     <footer class="footer">
-      <a href="https://underave.net"><img src="/public/underave.png" alt="underave" style="max-width: 150px; width: 100%; margin: 1rem auto; display: block; border-radius: 8px;" /></a>
+      <a href="https://underave.net"><img src="/underave.png" alt="underave" style="max-width: 150px; width: 100%; margin: 1rem auto; display: block; border-radius: 8px;" /></a>
     </footer>
   `
 }

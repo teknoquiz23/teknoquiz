@@ -24,5 +24,21 @@ export const parties = [
     Year: "2001",
     "Sound system": "Desert Storm",
     Country: "Spain"
+  },
+  {
+    id: "heretik",
+    "Sound system": "Heretik",
+    Country: "France"
+  },
+  {
+    id: "123124151251",
+    Party: "Czechtek",
+    Country: "Czech Republic",
+    Year: "2005"
+    },
+  {
+    id: "21412532523",
+    Party: "Space travel",
+    Country: "Italy"
   }
 ]
