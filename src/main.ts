@@ -1,7 +1,7 @@
 import './style.css'
 import { loadAndTriggerConfetti } from './confetti'
 import { setupRoundInfo } from './setupRoundInfo'
-import { getYearHint, getSoundHint, getCountryHint, getPartyHint, handleYearHint } from './getHints'
+import { getSoundHint, getCountryHint, getPartyHint, getYearHint } from './getHints'
 
 
 interface AppState {
@@ -24,7 +24,18 @@ const appState: AppState = {
 
 setupRoundInfo(appState)
 
-function triesCounter(isCorrect: boolean) {
+function shakeText(element: HTMLElement) {
+  element.classList.remove('shake', 'text-red')
+  void element.offsetWidth // force reflow
+  element.classList.add('shake', 'text-red')
+  const removeShake = () => {
+    element.classList.remove('shake', 'text-red')
+    element.removeEventListener('animationend', removeShake)
+  }
+  element.addEventListener('animationend', removeShake)
+}
+
+function handleGuessResult(isCorrect: boolean) {
   appState.guessesUsed++
   const guessesP = document.getElementById('guesses-used')
   if (guessesP) {
@@ -33,28 +44,9 @@ function triesCounter(isCorrect: boolean) {
   if (!isCorrect) {
     const guessWrap = document.getElementById('guesses-wrap')
     if (guessWrap) {
-      //
-      guessWrap.classList.remove('shake', 'text-red')
-      void guessWrap.offsetWidth // force reflow
-      guessWrap.classList.add('shake', 'text-red')
-      const removeShake = () => {
-        guessWrap.classList.remove('shake', 'text-red')
-        guessWrap.removeEventListener('animationend', removeShake)
-      }
-      guessWrap.addEventListener('animationend', removeShake)
+      shakeText(guessWrap)
     }
-    if (appState.guessesUsed % 3 === 0 && appState.roundImage < appState.maxImages) {
-      appState.roundImage++
-      // Update image number copunter
-      const imgCounter = document.getElementById('round-image-counter')
-      if (imgCounter) {
-        imgCounter.textContent = `Image ${appState.roundImage} of ${appState.maxImages}`
-      }
-      
-      // Next image logic
-      const img = document.querySelector('.game img') as HTMLImageElement
-      if (img) img.src = `/parties/${appState.currentImage}-${appState.roundImage}.png`
-    }
+    showNextImage(appState)
   }
   if (appState.guessesUsed >= 10) {
     // Game over logic
@@ -63,26 +55,51 @@ function triesCounter(isCorrect: boolean) {
     if (gameDiv) gameDiv.style.display = 'none'
     if (tryAgain) tryAgain.style.display = 'block'
   }
-  if (appState.guessesUsed === 4) {
-    // Sound System or Party hint logic
-    const hintEl = document.getElementById('hint')
-    if (hintEl && !appState.correctReponses.includes('Sound system')) {
-      if (appState.roundInfo['Sound system']) {
-        hintEl.textContent = getSoundHint(appState.roundInfo)
-      } else if (appState.roundInfo['Party']) {
-        hintEl.textContent = getPartyHint(appState.roundInfo)
-      } else {
-        hintEl.textContent = ''
-      }
+  showHints(appState)
+}
+
+function showNextImage(appState: AppState) {
+  if (appState.guessesUsed % 3 === 0 && appState.roundImage < appState.maxImages) {
+    appState.roundImage++
+    // Update image number counter
+    const imgCounter = document.getElementById('round-image-counter')
+    if (imgCounter) {
+      imgCounter.textContent = `Image ${appState.roundImage} of ${appState.maxImages}`
+    }
+    // Next image logic
+    const img = document.querySelector('.game img') as HTMLImageElement
+    if (img) img.src = `/parties/${appState.currentImage}-${appState.roundImage}.png`
+  }
+}
+
+function showHints(appState: AppState, isCorrect?: boolean, guessValue?: string) {
+  const hintEl = document.getElementById('hint')
+  // Year hint logic
+  if (hintEl) {
+    const yearHint = getYearHint(appState, isCorrect, guessValue)
+    if (yearHint) {
+      hintEl.textContent = yearHint
+      return
     }
   }
-  if (appState.guessesUsed === 7) {
-    // Country hint logic
-    const hintEl = document.getElementById('hint')
-    if (hintEl && !appState.correctReponses.includes('Country')) {
-      hintEl.textContent = getCountryHint(appState.roundInfo)
+  // Sound System or Party hint logic
+  if (appState.guessesUsed === 4 && hintEl && !appState.correctReponses.includes('Sound system')) {
+    if (appState.roundInfo['Sound system']) {
+      hintEl.textContent = getSoundHint(appState.roundInfo)
+    } else if (appState.roundInfo['Party']) {
+      hintEl.textContent = getPartyHint(appState.roundInfo)
+    } else {
+      hintEl.textContent = ''
     }
+    return
   }
+  // Country hint logic
+  if (appState.guessesUsed === 7 && hintEl && !appState.correctReponses.includes('Country')) {
+    hintEl.textContent = getCountryHint(appState.roundInfo)
+    return
+  }
+  // Default: clear hint
+  if (hintEl) hintEl.textContent = ''
 }
 
 // --- Rendering ---
@@ -135,8 +152,8 @@ const guessInput = document.getElementById('guess-input') as HTMLInputElement
 guessBtn?.addEventListener('click', () => {
   if (!guessInput || !appState.roundInfo) return
   const isCorrect = validateInputValue(guessInput.value, appState.roundInfo)
-  handleYearHint(isCorrect, guessInput.value, appState.roundInfo)
-  triesCounter(isCorrect)
+  showHints(appState, isCorrect, guessInput.value)
+  handleGuessResult(isCorrect)
   guessInput.value = ''
 })
 guessInput?.addEventListener('keydown', e => {

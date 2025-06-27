@@ -1,4 +1,4 @@
-export function getYearHint(correctYear: number, guessYear: number): string {
+export function getYearHintText(correctYear: number, guessYear: number): string {
   const diff = Math.abs(correctYear - guessYear)
   if (diff > 10) {
     return 'You are more than 10 years away from the correct year.'
@@ -39,13 +39,17 @@ export function getPartyHint(roundInfo: { [key: string]: string }): string {
   return ''
 }
 
-export function handleYearHint(isCorrect: boolean, guessValue: string, roundInfo: { [key: string]: string }) {
-  const year = roundInfo['Year']
-  const hintEl = document.getElementById('hint')
-  const guessYear = parseInt(guessValue, 10)
-  if (!isCorrect && year && !isNaN(guessYear)) {
-    if (hintEl) hintEl.textContent = getYearHint(Number(year), guessYear)
-  } else if (hintEl) {
-    hintEl.textContent = ''
+export function getYearHint(appState: { [key: string]: any }, isCorrect?: boolean, guessValue?: string): string {
+  if (
+    typeof isCorrect === 'boolean' &&
+    guessValue !== undefined &&
+    !isCorrect &&
+    appState.roundInfo['Year'] &&
+    !isNaN(parseInt(guessValue, 10))
+  ) {
+    const year = Number(appState.roundInfo['Year'])
+    const guessYear = parseInt(guessValue, 10)
+    return getYearHintText(year, guessYear)
   }
+  return ''
 }
