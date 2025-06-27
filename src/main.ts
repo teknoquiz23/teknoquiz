@@ -83,7 +83,7 @@ function showHints(appState: AppState, isCorrect?: boolean, guessValue?: string)
     }
   }
   // Sound System or Party hint logic
-  if (appState.guessesUsed === 4 && hintEl && !appState.correctReponses.includes('Sound system')) {
+  if (appState.guessesUsed === 2 && hintEl && !appState.correctReponses.includes('Sound system')) {
     if (appState.roundInfo['Sound system']) {
       hintEl.textContent = getSoundHint(appState.roundInfo)
     } else if (appState.roundInfo['Party']) {
@@ -94,7 +94,7 @@ function showHints(appState: AppState, isCorrect?: boolean, guessValue?: string)
     return
   }
   // Country hint logic
-  if (appState.guessesUsed === 7 && hintEl && !appState.correctReponses.includes('Country')) {
+  if (appState.guessesUsed === 4 && hintEl && !appState.correctReponses.includes('Country')) {
     hintEl.textContent = getCountryHint(appState.roundInfo)
     return
   }

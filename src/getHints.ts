@@ -20,7 +20,12 @@ export function getYearHintText(correctYear: number, guessYear: number): string 
 export function getSoundHint(roundInfo: { [key: string]: string }): string {
   const sound = roundInfo['Sound system']
   if (sound && sound.length > 0) {
-    return `The Sound system starts with "${sound[0].toUpperCase()}".`
+    const words = sound.trim().split(/\s+/)
+    const masked = words.map(word => {
+      if (word.length <= 1) return word.toUpperCase()
+      return word.slice(0, 1).toUpperCase() + 'X'.repeat(word.length - 1)
+    })
+    return `🔊 The Sound system: ${masked.join(' ')} (${words.length} word${words.length > 1 ? 's' : ''})`
   }
   return ''
 }
@@ -37,8 +42,12 @@ export function getCountryHint(roundInfo: { [key: string]: string }): string {
 export function getPartyHint(roundInfo: { [key: string]: string }): string {
   const party = roundInfo['Party']
   if (party && party.length > 0) {
-    const wordCount = party.trim().split(/\s+/).length
-    return `The party name starts with "${party[0].toUpperCase()}" and has ${wordCount} word${wordCount > 1 ? 's' : ''}.`
+    const words = party.trim().split(/\s+/)
+    const masked = words.map(word => {
+      if (word.length <= 2) return word.toUpperCase()
+      return word.slice(0, 2).toUpperCase() + 'X'.repeat(word.length - 2)
+    })
+    return `🕺 The party name: ${masked.join(' ')} (${words.length} word${words.length > 1 ? 's' : ''})`
   }
   return ''
 }
