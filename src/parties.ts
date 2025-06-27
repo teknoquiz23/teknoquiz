@@ -17,7 +17,7 @@ export const parties = [
     id: "Sound-confundent-2008",
     Year: "2008",
     Country: "Spain",
-    "Sound system": "Soundconfundent"
+    "Sound system": "Sound Confundent"
   },
   {
     id: "desert-storm-spain-badalona-2001",
