@@ -1,8 +1,10 @@
 import './style.css'
 import { loadAndTriggerConfetti } from './confetti'
 import { setupRoundInfo } from './setupRoundInfo'
-import { getSoundHint, getCountryHint, getPartyHint, getYearHint } from './getHints'
+import { getYearHint } from './getHints'
 
+const MAX_GUESSES = 10;
+const IMAGE_ERRORS_LIMIT = 3;
 
 interface AppState {
   guessesUsed: number;
@@ -35,31 +37,32 @@ function shakeText(element: HTMLElement) {
   element.addEventListener('animationend', removeShake)
 }
 
-function handleGuessResult(isCorrect: boolean) {
+function updateGuessesUsed(guessInput: string, isCorrect: boolean) {
   if (!isCorrect) {
-    appState.guessesUsed++
-    const guessesP = document.getElementById('guesses-used')
+    appState.guessesUsed++;
+
+    const guessesP = document.getElementById('guesses-used');
     if (guessesP) {
-      guessesP.textContent = `${appState.guessesUsed}`
+      guessesP.textContent = `${appState.guessesUsed}`;
     }
-    const guessWrap = document.getElementById('guesses-wrap')
+    const guessWrap = document.getElementById('guesses-wrap');
     if (guessWrap) {
-      shakeText(guessWrap)
+      shakeText(guessWrap);
     }
-    showNextImage(appState)
+    showNextImage(appState);
   }
-  if (appState.guessesUsed >= 10) {
+
+  if (appState.guessesUsed >= MAX_GUESSES) {
     // Game over logic
-    const gameDiv = document.querySelector('.game') as HTMLElement
-    const tryAgain = document.getElementById('try-again') as HTMLButtonElement
-    if (gameDiv) gameDiv.style.display = 'none'
-    if (tryAgain) tryAgain.style.display = 'block'
+    const gameDiv = document.querySelector('.game') as HTMLElement;
+    const tryAgain = document.getElementById('try-again') as HTMLButtonElement;
+    if (gameDiv) gameDiv.style.display = 'none';
+    if (tryAgain) tryAgain.style.display = 'block';
   }
-  showHints(appState)
 }
 
 function showNextImage(appState: AppState) {
-  if (appState.guessesUsed % 3 === 0 && appState.roundImage < appState.maxImages) {
+  if (appState.guessesUsed % IMAGE_ERRORS_LIMIT === 0 && appState.roundImage < appState.maxImages) {
     appState.roundImage++
     // Update image number counter
     const imgCounter = document.getElementById('round-image-counter')
@@ -72,43 +75,6 @@ function showNextImage(appState: AppState) {
   }
 }
 
-function getRandomSoundSystem(systems: string[]): string {
-  return systems[Math.floor(Math.random() * systems.length)]
-}
-
-function showHints(appState: AppState, isCorrect?: boolean, guessValue?: string) {
-  const hintEl = document.getElementById('hint')
-  // Year hint logic
-  if (hintEl) {
-    const yearHint = getYearHint(appState, isCorrect, guessValue)
-    if (yearHint) {
-      hintEl.textContent = yearHint
-      return
-    }
-  }
-  // Sound System or Party hint logic
-  if (appState.guessesUsed === 2 && hintEl && !appState.correctReponses.includes('Sound system')) {
-    const soundSystems = Array.isArray(appState.roundInfo['Sound system'])
-      ? appState.roundInfo['Sound system']
-      : appState.roundInfo['Sound system'] ? [appState.roundInfo['Sound system']] : []
-    if (soundSystems.length > 0) {
-      const randomSound = getRandomSoundSystem(soundSystems)
-      hintEl.textContent = getSoundHint({ 'Sound system': randomSound })
-    } else if (appState.roundInfo['Party']) {
-      hintEl.textContent = getPartyHint(appState.roundInfo)
-    } else {
-      hintEl.textContent = ''
-    }
-    return
-  }
-  // Country hint logic
-  if (appState.guessesUsed === 4 && hintEl && !appState.correctReponses.includes('Country')) {
-    hintEl.textContent = getCountryHint(appState.roundInfo)
-    return
-  }
-  // Default: clear hint
-  if (hintEl) hintEl.textContent = ''
-}
 
 // --- Rendering ---
 function renderGameUI(appState: AppState) {
@@ -151,34 +117,47 @@ renderGameUI(appState)
 // Now set up event listeners and dynamic content
 const guessBtn = document.getElementById('guess-btn')
 const guessInput = document.getElementById('guess-input') as HTMLInputElement
-guessBtn?.addEventListener('click', () => {
-  if (!guessInput || !appState.roundInfo) return
-  const isCorrect = validateInputValue(guessInput.value, appState.roundInfo)
-  showHints(appState, isCorrect, guessInput.value)
-  handleGuessResult(isCorrect)
-  guessInput.value = ''
-})
+const hintEl = document.getElementById('hint')
+
+function handleGuess(guessValue: string) {
+  
+  if (!guessValue || !appState.roundInfo) return
+
+  const isCorrect = validateInputValue(guessValue, appState.roundInfo);
+
+   
+    // Handle numeric guess
+    if (!isNaN(Number(guessValue))) {
+      const yearHint = getYearHint(appState, isCorrect, guessValue);
+      displayHint(`${yearHint}`);
+    } else {
+      if (hintEl) hintEl.textContent = '';
+    }
+
+    updateGuessesUsed(guessValue, isCorrect);
+    guessInput.value = '';
+
+}
+// Update event listeners
+guessBtn?.addEventListener('click', () => handleGuess(guessInput.value))
 guessInput?.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
-    guessBtn?.click()
+    e.preventDefault()
+    handleGuess(guessInput.value)
   }
 })
 document.getElementById('try-again-btn')?.addEventListener('click', () => {
   window.location.reload()
 })
 
+
 // Dynamically generate #party-data content based on roundInfo keys
 function getPartyDataHTML(roundInfo: any): string {
   if (!roundInfo) return ''
-  console.log('Generating party data HTML:', roundInfo)
   return Object.keys(roundInfo)
     .map(key => {
-      console.log(`Processing key: ${key}`);
-
       if (key === 'Sound system') {
-        const sounds = Array.isArray(roundInfo[key]) ? roundInfo[key] : [roundInfo[key]]
-        console.log(`Sound systems found: ${sounds.length > 1}`);
-        
+        const sounds = Array.isArray(roundInfo[key]) ? roundInfo[key] : [roundInfo[key]] 
         const label = sounds.length > 1 ? `Sound systems (${sounds.length}):` : 'Sound system:'
         return `<div><b>${label}</b> <span class="result-sound-system"></span></div>`
       } else {
@@ -277,6 +256,19 @@ function validateInputValue(inputValue: string, infoObj: any): boolean {
   } else {
     return false
   }
+}
+
+function displayHint(hintMessage: string) {
+  const hintEl = document.getElementById('hint');
+  if (!hintEl) {
+    console.error('Hint element not found in the DOM.');
+    return;
+  }
+  if (!hintMessage) {
+    console.error('Hint message is empty or undefined.');
+    return;
+  }
+  hintEl.textContent = hintMessage;
 }
 
 console.log(appState)
