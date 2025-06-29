@@ -1,10 +1,10 @@
 import './style.css'
 import { loadAndTriggerConfetti } from './confetti'
 import { setupRoundInfo } from './setupRoundInfo'
-import { getYearHint, getSoundHint, getCountryHint, getPartyHint, shouldShowNextSoundHint } from './getHints'
+import { getYearHint, getSoundHint, getCountryHint, getPartyHint, shouldShowNextSoundHint, getLastChanceHint } from './getHints'
 import { updateResultsUI } from './updateResultsUi'
 
-const IMAGE_ERRORS_LIMIT = 3;
+
 
 interface AppState {
   triesUsed: number;
@@ -27,6 +27,7 @@ const appState: AppState = {
 setupRoundInfo(appState)
 
 const MAX_TRIES = getMaxTries();
+const IMAGE_ERRORS_THRESHOLD = 3; // Show next image after every 3 incorrect tries
 
 function getMaxTries(): number {
   // Calculate max tries based on the number of items in roundInfo
@@ -70,7 +71,7 @@ function updateTriesUsed(isCorrect: boolean) {
 }
 
 function showNextImage(appState: AppState) {
-  if (appState.triesUsed % IMAGE_ERRORS_LIMIT === 0 && appState.roundImage < appState.maxImages) {
+  if (appState.triesUsed % IMAGE_ERRORS_THRESHOLD === 0 && appState.roundImage < appState.maxImages) {
     appState.roundImage++
     // Update image number counter
     const imgCounter = document.getElementById('round-image-counter')
@@ -128,23 +129,25 @@ const guessInput = document.getElementById('guess-input') as HTMLInputElement
 const hintEl = document.getElementById('hint')
 
 function handleResponse(responseValue: string) {
-  
   if (!responseValue || !appState.roundInfo) return
 
   const isCorrect = validateInputValue(responseValue, appState.roundInfo);
   updateTriesUsed(isCorrect);
-  
+
   // Handle numeric guess
   if (!isNaN(Number(responseValue))) {
     const yearHint = getYearHint(appState, isCorrect, responseValue);
-    displayHint(`${yearHint}`);
+    if (isCorrect) {
+      displayHint('✅ That\'s correct!');
+    } else {
+      displayHint(`${yearHint}`);
+    }
   } else {
     // Handle text hint
     handleTextHint(responseValue, isCorrect);
     if (hintEl) hintEl.textContent = '';
   }
 
-  
   guessInput.value = '';
 
 }
@@ -167,6 +170,10 @@ function handleTextHint(responseValue: string, isCorrect: boolean) {
 }
 
 function handleIncorrectResponse(responseValue: string) {
+  if (isLastChance()) {
+    displayHint(getLastChanceHint(appState));
+    return;
+  }
   console.log(`Incorrect guess: ${responseValue}`);
   let partyHint = '';
   let soundHint = '';
@@ -202,6 +209,16 @@ function handleIncorrectResponse(responseValue: string) {
   if (soundHint) hintMessage += `${soundHint} <br>`;
   if (countryHint) hintMessage += `${countryHint}`;
   if (hintMessage.trim()) displayHint(hintMessage.trim());
+}
+
+function isLastChance(): boolean {
+  const remainingKeys = Object.keys(appState.roundInfo).filter(key => {
+    if (key === 'Sound system' && Array.isArray(appState.roundInfo[key])) {
+      return appState.roundInfo[key].some((sound: string) => !appState.correctReponses.includes('Sound system:' + sound));
+    }
+    return !appState.correctReponses.includes(key);
+  });
+  return appState.triesUsed === MAX_TRIES - 1 && remainingKeys.length === 1;
 }
 
 // Update event listeners

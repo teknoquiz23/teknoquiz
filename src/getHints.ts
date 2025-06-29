@@ -19,8 +19,11 @@ export function getYearHintText(correctYear: number, yearResponse: number): stri
   }
 }
 
-export function getSoundHint(roundInfo: { [key: string]: string | string[] }, correctReponses?: string[]): string {
+export function getSoundHint(roundInfo: { [key: string]: string | string[] }, correctReponses?: string[], level: number = 1): string {
   const soundVal = roundInfo['Sound system']
+  const level1HintChars = 1;
+  const level2HintChars = 2;
+
   let sound = ''
   if (Array.isArray(soundVal)) {
     // If correctReponses is provided, find the first unguessed sound
@@ -35,54 +38,77 @@ export function getSoundHint(roundInfo: { [key: string]: string | string[] }, co
   }
   if (sound.length > 0) {
     const words = sound.trim().split(/\s+/)
-    const masked = words.map(word => {
-      if (word.length <= 1) return word.toUpperCase()
-      return word.slice(0, 1).toUpperCase() + 'X'.repeat(word.length - 1)
-    })
+    let masked;
+    if (level === 2) {
+      masked = words.map(word => word.slice(0, level2HintChars).toUpperCase() + 'X'.repeat(word.length - level2HintChars));
+    } else {
+      masked = words.map(word => {
+        return word.slice(0, level1HintChars).toUpperCase() + 'X'.repeat(word.length - level1HintChars)
+      })
+    }
     return `🔊 Sound system hint: ${masked.join(' ')} (${words.length} word${words.length > 1 ? 's' : ''})`
   }
   return ''
 }
 
-export function getCountryHint(roundInfo: { [key: string]: string | string[] }): string {
+export function getCountryHint(roundInfo: { [key: string]: string | string[] }, level: number = 1): string {
+  const level1HintChars = 1;
+  const level2HintChars = 2;
   const countryVal = roundInfo['Country']
   const country = Array.isArray(countryVal) ? countryVal[0] : countryVal
   if (country && country.length > 0) {
-    const wordCount = country.trim().split(/\s+/).length
-    return `💡 The country starts with "${country[0].toUpperCase()}" and has ${country.length} letters and ${wordCount} word${wordCount > 1 ? 's' : ''}.`
+    const words = country.trim().split(/\s+/)
+    let masked;
+    if (level === 2) {
+      masked = words.map(word => word.slice(0, level2HintChars).toUpperCase() + 'X'.repeat(word.length - level2HintChars));
+    } else {
+      masked = words.map(word => word.slice(0, level1HintChars).toUpperCase() + word.slice(level1HintChars));
+    }
+    return `💡 The country: ${masked.join(' ')} (${words.length} word${words.length > 1 ? 's' : ''})`;
   }
   return ''
 }
 
-export function getPartyHint(roundInfo: { [key: string]: string | string[] }): string {
+export function getPartyHint(roundInfo: { [key: string]: string | string[] }, level: number = 1): string {
+  const level1HintChars = 2;
+  const level2HintChars = 3;
   const partyVal = roundInfo['Party']
   const party = Array.isArray(partyVal) ? partyVal[0] : partyVal
   if (party && party.length > 0) {
     const words = party.trim().split(/\s+/)
-    const masked = words.map(word => {
-      if (word.length <= 2) return word.toUpperCase()
-      return word.slice(0, 2).toUpperCase() + 'X'.repeat(word.length - 2)
-    })
+    let masked;
+    if (level === 2) {
+      masked = words.map(word => word.slice(0, level2HintChars).toUpperCase() + 'X'.repeat(word.length - level2HintChars));
+    } else {
+      masked = words.map(word => word.slice(0, level1HintChars).toUpperCase() + 'X'.repeat(word.length - level1HintChars));
+    }
     return `🕺 The party name: ${masked.join(' ')} (${words.length} word${words.length > 1 ? 's' : ''})`
   }
   return ''
 }
 
-export function getYearHint(appState: { [key: string]: any }, isCorrect?: boolean, responseValue?: string): string {
-    
-    if (
+export function getYearHint(appState: { [key: string]: any }, isCorrect?: boolean, responseValue?: string, level: number = 1): string {
+  if (
     typeof isCorrect === 'boolean' &&
     responseValue !== undefined &&
     !isCorrect &&
     appState.roundInfo['Year'] &&
     !isNaN(parseInt(responseValue, 10))
   ) {
-    const year = Number(appState.roundInfo['Year'])
-    const yearResponse = parseInt(responseValue, 10)
-    
-    return getYearHintText(year, yearResponse)
+    const year = String(appState.roundInfo['Year']);
+    const yearResponse = parseInt(responseValue, 10);
+    if (level === 2) {
+      // Mask year: first and last digit, rest as X
+      if (year.length <= 2) {
+        return `Year hint: ${year}`;
+      } else {
+        return `Year hint: ${year[0]}${'X'.repeat(year.length - 2)}${year[year.length - 1]}`;
+      }
+    } else {
+      return getYearHintText(Number(year), yearResponse);
+    }
   }
-  return ''
+  return '';
 }
 
 export function shouldShowNextSoundHint(roundInfo: { [key: string]: string | string[] }, correctReponses: string[], responseValue: string): { isSoundSystem: boolean, moreToGuess: boolean } {
@@ -101,4 +127,27 @@ export function shouldShowNextSoundHint(roundInfo: { [key: string]: string | str
     : (correctReponses.includes('Sound system:' + soundSystems) ? 1 : 0);
   const moreToGuess = totalSounds > 1 && guessedSounds < totalSounds;
   return { isSoundSystem, moreToGuess };
+}
+
+export function getLastChanceHint(appState: any): string {
+  const roundInfo = appState.roundInfo;
+  const remainingKeys = Object.keys(roundInfo).filter(key => {
+    if (key === 'Sound system' && Array.isArray(roundInfo[key])) {
+      return roundInfo[key].some((sound: string) => !appState.correctReponses.includes('Sound system:' + sound));
+    }
+    return !appState.correctReponses.includes(key);
+  });
+  if (remainingKeys.length !== 1) return '';
+  const key = remainingKeys[0];
+  let hint = '';
+  if (key === 'Party') {
+    hint = getPartyHint(roundInfo, 2);
+  } else if (key === 'Sound system') {
+    hint = getSoundHint(roundInfo, appState.correctReponses, 2);
+  } else if (key === 'Country') {
+    hint = getCountryHint(roundInfo, 2);
+  } else if (key === 'Year') {
+    hint = getYearHint(appState, false, String(roundInfo['Year']), 2);
+  }
+  return `<b>💎 LAST CHANCE!</b><br>${hint}`;
 }
