@@ -163,7 +163,10 @@ function handleTextHint(guessValue: string, isCorrect: boolean) {
       return;
     }
   }
-  // ...existing code for incorrect guess...
+  handleIncorrectGuess(guessValue);
+}
+
+function handleIncorrectGuess(guessValue: string) {
   console.log(`Incorrect guess: ${guessValue}`);
   let partyHint = '';
   let soundHint = '';
@@ -200,6 +203,7 @@ function handleTextHint(guessValue: string, isCorrect: boolean) {
   if (countryHint) hintMessage += `${countryHint}`;
   if (hintMessage.trim()) displayHint(hintMessage.trim());
 }
+
 // Update event listeners
 guessBtn?.addEventListener('click', () => handleGuess(guessInput.value))
 guessInput?.addEventListener('keydown', e => {
