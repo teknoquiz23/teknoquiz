@@ -165,15 +165,27 @@ function handleTextHint(guessValue: string, isCorrect: boolean) {
 
     console.log(`Tries used: ${appState.triesUsed}, Party hint threshold: ${partyHintThreshold}, Sound hint threshold: ${soundHintThreshold}, Country hint threshold: ${countryHintThreshold}`);
     
-    if (appState.triesUsed === partyHintThreshold && appState.roundInfo['Party']) {
+    if (
+      appState.triesUsed === partyHintThreshold &&
+      appState.roundInfo['Party'] &&
+      !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Party'))
+    ) {
       partyHint = getPartyHint(appState.roundInfo);
     }
-    if (appState.triesUsed === soundHintThreshold && appState.roundInfo['Sound system']) {
+    if (
+      appState.triesUsed === soundHintThreshold &&
+      appState.roundInfo['Sound system'] &&
+      !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Sound system'))
+    ) {
       soundHint = getSoundHint(appState.roundInfo);
     }
-    if (appState.triesUsed === countryHintThreshold && appState.roundInfo['Country']){
-     countryHint = getCountryHint(appState.roundInfo);
-   }
+    if (
+      appState.triesUsed === countryHintThreshold &&
+      appState.roundInfo['Country'] &&
+      !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Country'))
+    ) {
+      countryHint = getCountryHint(appState.roundInfo);
+    }
 
     console.log(`Hints - Party: ${partyHint}, Country: ${countryHint}, Sound: ${soundHint}`);
 
@@ -182,8 +194,7 @@ function handleTextHint(guessValue: string, isCorrect: boolean) {
     if (soundHint) hintMessage += `${soundHint} <br>`;
     if (countryHint) hintMessage += `${countryHint}`;
     
-   if (hintMessage.trim()) displayHint(hintMessage.trim());
-    
+    if (hintMessage.trim()) displayHint(hintMessage.trim());
   }
 }
 // Update event listeners
