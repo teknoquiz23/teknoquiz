@@ -2,6 +2,7 @@ import './style.css'
 import { loadAndTriggerConfetti } from './confetti'
 import { setupRoundInfo } from './setupRoundInfo'
 import { getYearHint, getSoundHint, getCountryHint, getPartyHint } from './getHints'
+import { updateResultsUI } from './updateResultsUi'
 
 const IMAGE_ERRORS_LIMIT = 3;
 
@@ -226,38 +227,6 @@ function getPartyDataHTML(roundInfo: any): string {
     .join('')
 }
 
-function updateResultsUI() {
-  if (!appState.roundInfo) return
-  // Always show all sound systems if present
-  if (appState.roundInfo['Sound system']) {
-    const selector = `.result-sound-system`
-    const el = document.querySelector(selector)
-    if (el) {
-      const sounds = Array.isArray(appState.roundInfo['Sound system'])
-        ? appState.roundInfo['Sound system']
-        : [appState.roundInfo['Sound system']]
-      el.textContent = sounds
-        .map(sound =>
-          Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Sound system:' + sound)
-            ? `✅ ${sound}`
-            : ''
-        )
-        .join(' ')
-    }
-  }
-  if (!Array.isArray(appState.correctReponses)) return
-  appState.correctReponses.forEach(key => {
-    if (key.startsWith('Sound system:')) {
-      // Already handled above
-      return
-    } else {
-      const selector = `.result-${key.toLowerCase().replace(/\s+/g, '-')}`
-      const el = document.querySelector(selector)
-      if (el) el.textContent = `✅ ${appState.roundInfo[key]}`
-    }
-  })
-}
-
 function winner() {
   const gameDiv = document.querySelector('.game') as HTMLElement
   const youWin = document.getElementById('you-win') as HTMLElement
@@ -271,6 +240,7 @@ function validateInputValue(inputValue: string, infoObj: any): boolean {
   const value = normalize(inputValue.trim())
   if (!value) return false // Prevent empty input from matching any value
   let foundKey = null
+  // TODO si hi ha més d'un sound, explicar-ho.
   for (const [key, v] of Object.entries(infoObj)) {
     if (key === 'Sound system' && Array.isArray(v)) {
       for (const sound of v) {
@@ -288,7 +258,7 @@ function validateInputValue(inputValue: string, infoObj: any): boolean {
     if (!Array.isArray(appState.correctReponses)) appState.correctReponses = []
     if (!appState.correctReponses.includes(foundKey)) {
       appState.correctReponses.push(foundKey)
-      updateResultsUI()
+      updateResultsUI(appState)
     }
     // For sound system, check if all are guessed
     if (
