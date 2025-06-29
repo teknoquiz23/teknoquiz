@@ -236,55 +236,65 @@ function winner() {
 }
 
 function validateInputValue(inputValue: string, infoObj: any): boolean {
-  const normalize = (str: string) => str.toLowerCase().replace(/\s+/g, '')
-  const value = normalize(inputValue.trim())
-  if (!value) return false // Prevent empty input from matching any value
-  let foundKey = null
-  // TODO si hi ha més d'un sound, explicar-ho.
+  // Normalize input for comparison
+  const normalize = (str: string) => str.toLowerCase().replace(/\s+/g, '');
+  const value = normalize(inputValue.trim());
+  if (!value) return false; // Prevent empty input from matching any value
+
+  // Try to find a matching key in roundInfo
+  const foundKey = findMatchingKey(value, infoObj, normalize);
+  if (!foundKey) return false;
+
+  // Update correct responses if not already present
+  if (!Array.isArray(appState.correctReponses)) appState.correctReponses = [];
+  if (!appState.correctReponses.includes(foundKey)) {
+    appState.correctReponses.push(foundKey);
+    updateResultsUI(appState);
+  }
+
+  // Check if the user has won
+  if (isWinner()) {
+    winner();
+  }
+  return true;
+}
+
+function findMatchingKey(value: string, infoObj: any, normalize: (str: string) => string): string | null {
   for (const [key, v] of Object.entries(infoObj)) {
     if (key === 'Sound system' && Array.isArray(v)) {
       for (const sound of v) {
         if (normalize(String(sound)) === value) {
-          foundKey = key + ':' + sound // unique key for each sound
-          break
+          return key + ':' + sound; // unique key for each sound
         }
       }
     } else if (normalize(String(v)) === value) {
-      foundKey = key
-      break
+      return key;
     }
   }
-  if (foundKey) {
-    if (!Array.isArray(appState.correctReponses)) appState.correctReponses = []
-    if (!appState.correctReponses.includes(foundKey)) {
-      appState.correctReponses.push(foundKey)
-      updateResultsUI(appState)
-    }
-    // For sound system, check if all are guessed
-    if (
-      appState.roundInfo['Sound system'] &&
-      Array.isArray(appState.roundInfo['Sound system']) &&
-      appState.roundInfo['Sound system'].length > 1
-    ) {
-      const allGuessed = appState.roundInfo['Sound system'].every(sound =>
-        appState.correctReponses.includes('Sound system:' + sound)
-      )
-      const allOther = Object.keys(appState.roundInfo)
-        .filter(k => k !== 'Sound system')
-        .every(k => appState.correctReponses.includes(k))
-      if (allGuessed && allOther) {
-        winner()
-      }
-    } else if (
-      appState.roundInfo &&
-      appState.correctReponses.length === Object.keys(appState.roundInfo).length
-    ) {
-      winner()
-    }
-    return true
-  } else {
-    return false
+  return null;
+}
+
+function isWinner(): boolean {
+  // For sound system, check if all are guessed
+  if (
+    appState.roundInfo['Sound system'] &&
+    Array.isArray(appState.roundInfo['Sound system']) &&
+    appState.roundInfo['Sound system'].length > 1
+  ) {
+    const allGuessed = appState.roundInfo['Sound system'].every(sound =>
+      appState.correctReponses.includes('Sound system:' + sound)
+    );
+    const allOther = Object.keys(appState.roundInfo)
+      .filter(k => k !== 'Sound system')
+      .every(k => appState.correctReponses.includes(k));
+    return allGuessed && allOther;
+  } else if (
+    appState.roundInfo &&
+    appState.correctReponses.length === Object.keys(appState.roundInfo).length
+  ) {
+    return true;
   }
+  return false;
 }
 
 function displayHint(hintMessage: string) {
@@ -299,8 +309,6 @@ function displayHint(hintMessage: string) {
   }
   hintEl.innerHTML = `<p>${hintMessage}</p>`;
 }
-
-console.log(appState)
 
 
 
