@@ -1,9 +1,8 @@
 import './style.css'
 import { loadAndTriggerConfetti } from './confetti'
 import { setupRoundInfo } from './setupRoundInfo'
-import { getYearHint } from './getHints'
+import { getYearHint, getSoundHint, getCountryHint, getPartyHint } from './getHints'
 
-const MAX_GUESSES = 10;
 const IMAGE_ERRORS_LIMIT = 3;
 
 interface AppState {
@@ -26,6 +25,12 @@ const appState: AppState = {
 
 setupRoundInfo(appState)
 
+function getMaxTries(): number {
+  // Calculate max tries based on the number of items in roundInfo
+  const numItems = Object.keys(appState.roundInfo).length;
+  return Math.max(10, numItems * 3); // Ensure at least 10 tries
+}
+
 function shakeText(element: HTMLElement) {
   element.classList.remove('shake', 'text-red')
   void element.offsetWidth // force reflow
@@ -37,7 +42,7 @@ function shakeText(element: HTMLElement) {
   element.addEventListener('animationend', removeShake)
 }
 
-function updateGuessesUsed(guessInput: string, isCorrect: boolean) {
+function updateGuessesUsed(isCorrect: boolean) {
   if (!isCorrect) {
     appState.guessesUsed++;
 
@@ -52,7 +57,7 @@ function updateGuessesUsed(guessInput: string, isCorrect: boolean) {
     showNextImage(appState);
   }
 
-  if (appState.guessesUsed >= MAX_GUESSES) {
+  if (appState.guessesUsed >= getMaxTries()) {
     // Game over logic
     const gameDiv = document.querySelector('.game') as HTMLElement;
     const tryAgain = document.getElementById('try-again') as HTMLButtonElement;
@@ -85,7 +90,7 @@ function renderGameUI(appState: AppState) {
       <img src="/parties/${appState.currentImage}-${appState.roundImage}.png" alt="Random party" style="max-width: 500px; width: 100%; border-radius: 8px; " />
       
       <p id="round-image-counter" style="text-align: center; margin:0; margin-bottom: 0; text-align: center; font-size: 12px;">Image ${appState.roundImage} of ${appState.maxImages}</p>
-      <p id="guesses-wrap" style="margin:0;margin-bottom:20px; font-size: 12px;"><span id="guesses-used">0</span>/10 guesses used</p>
+      <p id="guesses-wrap" style="margin:0;margin-bottom:20px; font-size: 12px;"><span id="guesses-used">0</span>/${getMaxTries()} guesses used</p>
       <div id="guess-wrap">
         <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
           <input id="guess-input" type="text" placeholder="Guess party name, sound system, year or country" style="padding: 0.5em; font-size: 1em;" />
@@ -93,7 +98,7 @@ function renderGameUI(appState: AppState) {
         </div>
           
       </div>
-      <p id="hint" style="margin:0;margin-bottom: 2rem;"></p>
+      <div id="hints-wrap" style="margin:0;margin-bottom: 2rem;"></div>
       <div>
         <div id="party-data" style="text-align:left;" class="text-left w-full max-w-md space-y-2">
           ${getPartyDataHTML(appState.roundInfo)}
@@ -125,18 +130,46 @@ function handleGuess(guessValue: string) {
 
   const isCorrect = validateInputValue(guessValue, appState.roundInfo);
 
-   
-    // Handle numeric guess
-    if (!isNaN(Number(guessValue))) {
-      const yearHint = getYearHint(appState, isCorrect, guessValue);
-      displayHint(`${yearHint}`);
-    } else {
-      if (hintEl) hintEl.textContent = '';
-    }
+  // Handle numeric guess
+  if (!isNaN(Number(guessValue))) {
+    const yearHint = getYearHint(appState, isCorrect, guessValue);
+    displayHint(`${yearHint}`);
+  } else {
+    // Handle text hint
+    handleTextHint(guessValue, isCorrect);
+    if (hintEl) hintEl.textContent = '';
+  }
 
-    updateGuessesUsed(guessValue, isCorrect);
-    guessInput.value = '';
+  updateGuessesUsed(isCorrect);
+  guessInput.value = '';
 
+}
+
+function handleTextHint(guessValue: string, isCorrect: boolean) {
+  if (isCorrect) {
+    // If the guess is correct, we can provide a positive feedback
+    displayHint('✅ Correct!');
+  } else {
+    console.log(`Incorrect guess: ${guessValue}`);
+    // TODO define max-guesses en funció de num d'items a round info
+    // dividir error thresholds en funció num d'items a round info
+    // if sound party exists, and guess used are 3, provide party hint
+    // if sound system exists, and guess used are 6, provide sound system hint
+    // if sound country exists, and guess used are 9, provide country hint
+
+    const partyHint = getPartyHint(appState.roundInfo);
+    const countryHint = getCountryHint(appState.roundInfo);
+    //const soundHint = getSoundHint(appState.roundInfo);
+    
+    console.log(`Hints - Party: ${partyHint}, Country: ${countryHint}`);
+    
+    let hintMessage = '';
+    if (partyHint) hintMessage += `${partyHint} `;
+    if (countryHint) hintMessage += `${countryHint} `;
+    //if (soundHint) hintMessage += `${soundHint} `;
+
+    displayHint(hintMessage.trim() || '❌ Incorrect guess, try again!');
+  }
 }
 // Update event listeners
 guessBtn?.addEventListener('click', () => handleGuess(guessInput.value))
@@ -259,7 +292,7 @@ function validateInputValue(inputValue: string, infoObj: any): boolean {
 }
 
 function displayHint(hintMessage: string) {
-  const hintEl = document.getElementById('hint');
+  const hintEl = document.getElementById('hints-wrap');
   if (!hintEl) {
     console.error('Hint element not found in the DOM.');
     return;
@@ -268,7 +301,7 @@ function displayHint(hintMessage: string) {
     console.error('Hint message is empty or undefined.');
     return;
   }
-  hintEl.textContent = hintMessage;
+  hintEl.innerHTML = `<p>${hintMessage}</p>`;
 }
 
 console.log(appState)
