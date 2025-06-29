@@ -159,9 +159,9 @@ function handleTextHint(guessValue: string, isCorrect: boolean) {
     let soundHint = '';
     let countryHint = '';
 
-    const partyHintThreshold =  MAX_TRIES / 3; // 10 tries -> 3, 20 tries -> 6, etc.
-    const soundHintThreshold =  MAX_TRIES / 2; // 10 tries -> 5, 20 tries -> 10, etc.
-    const countryHintThreshold =  (MAX_TRIES * 2) / 3; // 10 tries -> 7, 20 tries -> 13, etc.
+    const partyHintThreshold = Math.floor(MAX_TRIES / 3); // 10 tries -> 3, 20 tries -> 6, etc.
+    const soundHintThreshold = Math.floor(MAX_TRIES / (appState.roundInfo['Party'] ? 2 : 3)); // If Party exists, divide by 2, else by 3
+    const countryHintThreshold = Math.floor((MAX_TRIES * 2) / 3); // 10 tries -> 6, 20 tries -> 13, etc.
 
     console.log(`Tries used: ${appState.triesUsed}, Party hint threshold: ${partyHintThreshold}, Sound hint threshold: ${soundHintThreshold}, Country hint threshold: ${countryHintThreshold}`);
     
@@ -180,7 +180,7 @@ function handleTextHint(guessValue: string, isCorrect: boolean) {
     let hintMessage = '';
     if (partyHint) hintMessage += `${partyHint} <br>`;  
     if (soundHint) hintMessage += `${soundHint} <br>`;
-    if (countryHint) hintMessage += `${countryHint}>`;
+    if (countryHint) hintMessage += `${countryHint}`;
     
    if (hintMessage.trim()) displayHint(hintMessage.trim());
     
