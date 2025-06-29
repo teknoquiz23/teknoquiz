@@ -25,6 +25,7 @@ const appState: AppState = {
 
 setupRoundInfo(appState)
 
+const MAX_TRIES = getMaxTries();
 
 function getMaxTries(): number {
   // Calculate max tries based on the number of items in roundInfo
@@ -130,7 +131,8 @@ function handleGuess(guessValue: string) {
   if (!guessValue || !appState.roundInfo) return
 
   const isCorrect = validateInputValue(guessValue, appState.roundInfo);
-
+  updateTriesUsed(isCorrect);
+  
   // Handle numeric guess
   if (!isNaN(Number(guessValue))) {
     const yearHint = getYearHint(appState, isCorrect, guessValue);
@@ -141,7 +143,7 @@ function handleGuess(guessValue: string) {
     if (hintEl) hintEl.textContent = '';
   }
 
-  updateTriesUsed(isCorrect);
+  
   guessInput.value = '';
 
 }
@@ -149,27 +151,39 @@ function handleGuess(guessValue: string) {
 function handleTextHint(guessValue: string, isCorrect: boolean) {
   if (isCorrect) {
     // If the guess is correct, we can provide a positive feedback
-    displayHint('✅ Correct!');
+    displayHint('✅ That\'s correct!');
   } else {
     console.log(`Incorrect guess: ${guessValue}`);
-    // TODO define max-tries en funció de num d'items a round info
-    // dividir error thresholds en funció num d'items a round info
-    // if sound party exists, and guess used are 3, provide party hint
-    // if sound system exists, and guess used are 6, provide sound system hint
-    // if sound country exists, and guess used are 9, provide country hint
 
-    const partyHint = getPartyHint(appState.roundInfo);
-    const countryHint = getCountryHint(appState.roundInfo);
-    const soundHint = getSoundHint(appState.roundInfo);
+    let partyHint = '';
+    let soundHint = '';
+    let countryHint = '';
+
+    const partyHintThreshold =  MAX_TRIES / 3; // 10 tries -> 3, 20 tries -> 6, etc.
+    const soundHintThreshold =  MAX_TRIES / 2; // 10 tries -> 5, 20 tries -> 10, etc.
+    const countryHintThreshold =  (MAX_TRIES * 2) / 3; // 10 tries -> 7, 20 tries -> 13, etc.
+
+    console.log(`Tries used: ${appState.triesUsed}, Party hint threshold: ${partyHintThreshold}, Sound hint threshold: ${soundHintThreshold}, Country hint threshold: ${countryHintThreshold}`);
+    
+    if (appState.triesUsed === partyHintThreshold && appState.roundInfo['Party']) {
+      partyHint = getPartyHint(appState.roundInfo);
+    }
+    if (appState.triesUsed === soundHintThreshold && appState.roundInfo['Sound system']) {
+      soundHint = getSoundHint(appState.roundInfo);
+    }
+    if (appState.triesUsed === countryHintThreshold && appState.roundInfo['Country']){
+     countryHint = getCountryHint(appState.roundInfo);
+   }
 
     console.log(`Hints - Party: ${partyHint}, Country: ${countryHint}, Sound: ${soundHint}`);
 
     let hintMessage = '';
-    if (partyHint) hintMessage += `${partyHint} <br>`;
-    if (countryHint) hintMessage += `${countryHint} <br>`;
-    if (soundHint) hintMessage += `${soundHint}`;
-
-    displayHint(hintMessage.trim() || '❌ Incorrect guess, try again!');
+    if (partyHint) hintMessage += `${partyHint} <br>`;  
+    if (soundHint) hintMessage += `${soundHint} <br>`;
+    if (countryHint) hintMessage += `${countryHint}>`;
+    
+   if (hintMessage.trim()) displayHint(hintMessage.trim());
+    
   }
 }
 // Update event listeners
