@@ -1,7 +1,7 @@
 import './style.css'
 import { loadAndTriggerConfetti } from './confetti'
 import { setupRoundInfo } from './setupRoundInfo'
-import { getYearHint, getSoundHint, getCountryHint, getPartyHint } from './getHints'
+import { getYearHint, getSoundHint, getCountryHint, getPartyHint, shouldShowNextSoundHint } from './getHints'
 import { updateResultsUI } from './updateResultsUi'
 
 const IMAGE_ERRORS_LIMIT = 3;
@@ -150,53 +150,55 @@ function handleGuess(guessValue: string) {
 }
 
 function handleTextHint(guessValue: string, isCorrect: boolean) {
+  // If the guess is correct, check if it's a sound system and if more remain to be guessed
   if (isCorrect) {
-    // If the guess is correct, we can provide a positive feedback
-    displayHint('✅ That\'s correct!');
-  } else {
-    console.log(`Incorrect guess: ${guessValue}`);
-
-    let partyHint = '';
-    let soundHint = '';
-    let countryHint = '';
-
-    const partyHintThreshold = Math.floor(MAX_TRIES / 3); // 10 tries -> 3, 20 tries -> 6, etc.
-    const soundHintThreshold = Math.floor(MAX_TRIES / (appState.roundInfo['Party'] ? 2 : 3)); // If Party exists, divide by 2, else by 3
-    const countryHintThreshold = Math.floor((MAX_TRIES * 2) / 3); // 10 tries -> 6, 20 tries -> 13, etc.
-
-    console.log(`Tries used: ${appState.triesUsed}, Party hint threshold: ${partyHintThreshold}, Sound hint threshold: ${soundHintThreshold}, Country hint threshold: ${countryHintThreshold}`);
-    
-    if (
-      appState.triesUsed === partyHintThreshold &&
-      appState.roundInfo['Party'] &&
-      !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Party'))
-    ) {
-      partyHint = getPartyHint(appState.roundInfo);
+    const correct = Array.isArray(appState.correctReponses) ? appState.correctReponses : [];
+    const { isSoundSystem, moreToGuess } = shouldShowNextSoundHint(appState.roundInfo, correct, guessValue);
+    if (isSoundSystem && moreToGuess) {
+      const nextHint = getSoundHint(appState.roundInfo, correct);
+      displayHint(`✅ That\'s correct!<br>${nextHint}`);
+      return;
+    } else {
+      displayHint('✅ That\'s correct!');
+      return;
     }
-    if (
-      appState.triesUsed === soundHintThreshold &&
-      appState.roundInfo['Sound system'] &&
-      !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Sound system'))
-    ) {
-      soundHint = getSoundHint(appState.roundInfo);
-    }
-    if (
-      appState.triesUsed === countryHintThreshold &&
-      appState.roundInfo['Country'] &&
-      !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Country'))
-    ) {
-      countryHint = getCountryHint(appState.roundInfo);
-    }
-
-    console.log(`Hints - Party: ${partyHint}, Country: ${countryHint}, Sound: ${soundHint}`);
-
-    let hintMessage = '';
-    if (partyHint) hintMessage += `${partyHint} <br>`;  
-    if (soundHint) hintMessage += `${soundHint} <br>`;
-    if (countryHint) hintMessage += `${countryHint}`;
-    
-    if (hintMessage.trim()) displayHint(hintMessage.trim());
   }
+  // ...existing code for incorrect guess...
+  console.log(`Incorrect guess: ${guessValue}`);
+  let partyHint = '';
+  let soundHint = '';
+  let countryHint = '';
+  const partyHintThreshold = Math.floor(MAX_TRIES / 3);
+  const soundHintThreshold = Math.floor(MAX_TRIES / (appState.roundInfo['Party'] ? 2 : 3));
+  const countryHintThreshold = Math.floor((MAX_TRIES * 2) / 3);
+  console.log(`Tries used: ${appState.triesUsed}, Party hint threshold: ${partyHintThreshold}, Sound hint threshold: ${soundHintThreshold}, Country hint threshold: ${countryHintThreshold}`);
+  if (
+    appState.triesUsed === partyHintThreshold &&
+    appState.roundInfo['Party'] &&
+    !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Party'))
+  ) {
+    partyHint = getPartyHint(appState.roundInfo);
+  }
+  if (
+    appState.triesUsed === soundHintThreshold &&
+    appState.roundInfo['Sound system'] &&
+    !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Sound system'))
+  ) {
+    soundHint = getSoundHint(appState.roundInfo, appState.correctReponses);
+  }
+  if (
+    appState.triesUsed === countryHintThreshold &&
+    appState.roundInfo['Country'] &&
+    !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Country'))
+  ) {
+    countryHint = getCountryHint(appState.roundInfo);
+  }
+  console.log(`Hints - Party: ${partyHint}, Country: ${countryHint}, Sound: ${soundHint}`);
+  let hintMessage = '';
+  if (partyHint) hintMessage += `${partyHint} <br>`;
+  if (soundHint) hintMessage += `${soundHint} <br>`;
+  if (countryHint) hintMessage += `${countryHint}`;
+  if (hintMessage.trim()) displayHint(hintMessage.trim());
 }
 // Update event listeners
 guessBtn?.addEventListener('click', () => handleGuess(guessInput.value))

@@ -19,11 +19,17 @@ export function getYearHintText(correctYear: number, guessYear: number): string 
   }
 }
 
-export function getSoundHint(roundInfo: { [key: string]: string | string[] }): string {
+export function getSoundHint(roundInfo: { [key: string]: string | string[] }, correctReponses?: string[]): string {
   const soundVal = roundInfo['Sound system']
   let sound = ''
   if (Array.isArray(soundVal)) {
-    sound = soundVal[0] || ''
+    // If correctReponses is provided, find the first unguessed sound
+    if (correctReponses && correctReponses.length > 0) {
+      const unguessed = soundVal.find(s => !correctReponses.includes('Sound system:' + s));
+      sound = unguessed || soundVal[0] || ''
+    } else {
+      sound = soundVal[0] || ''
+    }
   } else {
     sound = soundVal || ''
   }
@@ -77,4 +83,22 @@ export function getYearHint(appState: { [key: string]: any }, isCorrect?: boolea
     return getYearHintText(year, guessYear)
   }
   return ''
+}
+
+export function shouldShowNextSoundHint(roundInfo: { [key: string]: string | string[] }, correctReponses: string[], guessValue: string): { isSoundSystem: boolean, moreToGuess: boolean } {
+  const soundSystems = roundInfo['Sound system'];
+  // Check if guessValue matches a sound system
+  let isSoundSystem = false;
+  if (Array.isArray(soundSystems)) {
+    isSoundSystem = soundSystems.some(s => s.toLowerCase() === guessValue.trim().toLowerCase());
+  } else if (typeof soundSystems === 'string') {
+    isSoundSystem = soundSystems.toLowerCase() === guessValue.trim().toLowerCase();
+  }
+  // Count how many sound systems are left to guess
+  const totalSounds = Array.isArray(soundSystems) ? soundSystems.length : soundSystems ? 1 : 0;
+  const guessedSounds = Array.isArray(soundSystems)
+    ? soundSystems.filter(s => correctReponses.includes('Sound system:' + s)).length
+    : (correctReponses.includes('Sound system:' + soundSystems) ? 1 : 0);
+  const moreToGuess = totalSounds > 1 && guessedSounds < totalSounds;
+  return { isSoundSystem, moreToGuess };
 }
