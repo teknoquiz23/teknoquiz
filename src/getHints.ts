@@ -1,7 +1,7 @@
-export function getYearHintText(correctYear: number, guessYear: number): string {
-    console.log('getYearHintText', correctYear, guessYear);
+export function getYearHintText(correctYear: number, yearResponse: number): string {
+    console.log('getYearHintText', correctYear, yearResponse);
     
-  const diff = Math.abs(correctYear - guessYear)
+  const diff = Math.abs(correctYear - yearResponse)
   if (diff > 20) {
     return '🥶 Way off! More than 20 years away.'
   } else if (diff > 10) {
@@ -68,31 +68,31 @@ export function getPartyHint(roundInfo: { [key: string]: string | string[] }): s
   return ''
 }
 
-export function getYearHint(appState: { [key: string]: any }, isCorrect?: boolean, guessValue?: string): string {
+export function getYearHint(appState: { [key: string]: any }, isCorrect?: boolean, responseValue?: string): string {
     
     if (
     typeof isCorrect === 'boolean' &&
-    guessValue !== undefined &&
+    responseValue !== undefined &&
     !isCorrect &&
     appState.roundInfo['Year'] &&
-    !isNaN(parseInt(guessValue, 10))
+    !isNaN(parseInt(responseValue, 10))
   ) {
     const year = Number(appState.roundInfo['Year'])
-    const guessYear = parseInt(guessValue, 10)
+    const yearResponse = parseInt(responseValue, 10)
     
-    return getYearHintText(year, guessYear)
+    return getYearHintText(year, yearResponse)
   }
   return ''
 }
 
-export function shouldShowNextSoundHint(roundInfo: { [key: string]: string | string[] }, correctReponses: string[], guessValue: string): { isSoundSystem: boolean, moreToGuess: boolean } {
+export function shouldShowNextSoundHint(roundInfo: { [key: string]: string | string[] }, correctReponses: string[], responseValue: string): { isSoundSystem: boolean, moreToGuess: boolean } {
   const soundSystems = roundInfo['Sound system'];
-  // Check if guessValue matches a sound system
+  // Check if responseValue matches a sound system
   let isSoundSystem = false;
   if (Array.isArray(soundSystems)) {
-    isSoundSystem = soundSystems.some(s => s.toLowerCase() === guessValue.trim().toLowerCase());
+    isSoundSystem = soundSystems.some(s => s.toLowerCase() === responseValue.trim().toLowerCase());
   } else if (typeof soundSystems === 'string') {
-    isSoundSystem = soundSystems.toLowerCase() === guessValue.trim().toLowerCase();
+    isSoundSystem = soundSystems.toLowerCase() === responseValue.trim().toLowerCase();
   }
   // Count how many sound systems are left to guess
   const totalSounds = Array.isArray(soundSystems) ? soundSystems.length : soundSystems ? 1 : 0;

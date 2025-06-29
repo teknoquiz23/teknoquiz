@@ -127,20 +127,20 @@ const guessBtn = document.getElementById('guess-btn')
 const guessInput = document.getElementById('guess-input') as HTMLInputElement
 const hintEl = document.getElementById('hint')
 
-function handleGuess(guessValue: string) {
+function handleResponse(responseValue: string) {
   
-  if (!guessValue || !appState.roundInfo) return
+  if (!responseValue || !appState.roundInfo) return
 
-  const isCorrect = validateInputValue(guessValue, appState.roundInfo);
+  const isCorrect = validateInputValue(responseValue, appState.roundInfo);
   updateTriesUsed(isCorrect);
   
   // Handle numeric guess
-  if (!isNaN(Number(guessValue))) {
-    const yearHint = getYearHint(appState, isCorrect, guessValue);
+  if (!isNaN(Number(responseValue))) {
+    const yearHint = getYearHint(appState, isCorrect, responseValue);
     displayHint(`${yearHint}`);
   } else {
     // Handle text hint
-    handleTextHint(guessValue, isCorrect);
+    handleTextHint(responseValue, isCorrect);
     if (hintEl) hintEl.textContent = '';
   }
 
@@ -149,11 +149,11 @@ function handleGuess(guessValue: string) {
 
 }
 
-function handleTextHint(guessValue: string, isCorrect: boolean) {
+function handleTextHint(responseValue: string, isCorrect: boolean) {
   // If the guess is correct, check if it's a sound system and if more remain to be guessed
   if (isCorrect) {
     const correct = Array.isArray(appState.correctReponses) ? appState.correctReponses : [];
-    const { isSoundSystem, moreToGuess } = shouldShowNextSoundHint(appState.roundInfo, correct, guessValue);
+    const { isSoundSystem, moreToGuess } = shouldShowNextSoundHint(appState.roundInfo, correct, responseValue);
     if (isSoundSystem && moreToGuess) {
       const nextHint = getSoundHint(appState.roundInfo, correct);
       displayHint(`✅ That\'s correct!<br>${nextHint}`);
@@ -163,11 +163,11 @@ function handleTextHint(guessValue: string, isCorrect: boolean) {
       return;
     }
   }
-  handleIncorrectGuess(guessValue);
+  handleIncorrectResponse(responseValue);
 }
 
-function handleIncorrectGuess(guessValue: string) {
-  console.log(`Incorrect guess: ${guessValue}`);
+function handleIncorrectResponse(responseValue: string) {
+  console.log(`Incorrect guess: ${responseValue}`);
   let partyHint = '';
   let soundHint = '';
   let countryHint = '';
@@ -205,11 +205,11 @@ function handleIncorrectGuess(guessValue: string) {
 }
 
 // Update event listeners
-guessBtn?.addEventListener('click', () => handleGuess(guessInput.value))
+guessBtn?.addEventListener('click', () => handleResponse(guessInput.value))
 guessInput?.addEventListener('keydown', e => {
   if (e.key === 'Enter') {
     e.preventDefault()
-    handleGuess(guessInput.value)
+    handleResponse(guessInput.value)
   }
 })
 document.getElementById('try-again-btn')?.addEventListener('click', () => {
