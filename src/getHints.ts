@@ -1,4 +1,6 @@
 export function getYearHintText(correctYear: number, guessYear: number): string {
+    console.log('getYearHintText', correctYear, guessYear);
+    
   const diff = Math.abs(correctYear - guessYear)
   if (diff > 20) {
     return '🥶 Way off! More than 20 years away.'
@@ -61,7 +63,8 @@ export function getPartyHint(roundInfo: { [key: string]: string | string[] }): s
 }
 
 export function getYearHint(appState: { [key: string]: any }, isCorrect?: boolean, guessValue?: string): string {
-  if (
+    
+    if (
     typeof isCorrect === 'boolean' &&
     guessValue !== undefined &&
     !isCorrect &&
@@ -70,6 +73,7 @@ export function getYearHint(appState: { [key: string]: any }, isCorrect?: boolea
   ) {
     const year = Number(appState.roundInfo['Year'])
     const guessYear = parseInt(guessValue, 10)
+    
     return getYearHintText(year, guessYear)
   }
   return ''
