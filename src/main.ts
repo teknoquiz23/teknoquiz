@@ -46,7 +46,7 @@ function shakeText(element: HTMLElement) {
   element.addEventListener('animationend', removeShake)
 }
 
-function updateTriesUsed() {
+export function updateTriesUsed() {
     appState.triesUsed++;
     const triesEl = document.getElementById('tries-used');
     if (triesEl) {

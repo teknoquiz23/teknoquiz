@@ -2,31 +2,31 @@
 export const parties = [
 
   {
-    id: "Dragon-Festival-2006",
+    id: "a32d23c32c",
     Party: "Dragon festival",
     Country: "Spain",
     Year: "2006"
   },
   {
-    id: "New-Year-2007@Polinya-rizomatic",
+    id: "ds42f3fv2cv2v2v",
     Party: "New year",
     "Sound system": ["Rizomatik"],
     Country: "Spain",
     Year: "2007"
   },
   {
-    id: "Sound-confundent-2008",
+    id: "34g3h535h3h",
     "Sound system": ["Sound Confundent"],
     Country: "Spain"
   },
   {
-    id: "desert-storm-spain-badalona-2001",
+    id: "325c23rc23",
     "Sound system": ["Desert Storm"],
     Country: "Spain",
     Year: "2001"
   },
   {
-    id: "heretik",
+    id: "dfh23f2ef23f",
     "Sound system": ["Heretik"],
     Country: "France"
   },
