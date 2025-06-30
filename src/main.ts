@@ -133,16 +133,16 @@ function handleResponse(responseValue: string) {
 
 
 
-function moreSoundsToGuess(responseValue  : string): boolean {
-  // Logic for handling more sounds to guess
-  const { isSoundSystem, moreToGuess } = shouldShowNextSoundHint(appState.roundInfo, appState.correctReponses, responseValue);
-  return isSoundSystem && moreToGuess;
+function moreSoundsToFind(responseValue  : string): boolean {
+  // Logic for handling more sounds to find
+  const { isSoundSystem, moreToFind } = shouldShowNextSoundHint(appState.roundInfo, appState.correctReponses, responseValue);
+  return isSoundSystem && moreToFind;
 }
 
 function handleCorrectResponse(responseValue: string) {
   if (isWinner()) {
     gameWinner();
-  } else if (moreSoundsToGuess(responseValue)) {
+  } else if (moreSoundsToFind(responseValue)) {
     const hintMessage = getSoundHint(appState.roundInfo, appState.correctReponses);
     playCorrectSound();
     displayHint(`✅ That\'s correct!<br>${hintMessage}`);
@@ -169,7 +169,7 @@ function handleIncorrectResponse(responseValue: string, isCorrect: boolean = fal
     return;
   }
 
-  // Handle numeric guess
+  // Handle numeric reponse
   if (!isNaN(Number(responseValue))) {
     const yearHint = getYearHint(appState, isCorrect, responseValue);
     if (isCorrect) {
@@ -187,7 +187,8 @@ function handleIncorrectResponse(responseValue: string, isCorrect: boolean = fal
 function handleTextHint(responseValue: string, isCorrect: boolean) {
   const hintEl = document.getElementById('hint');
   if (hintEl) hintEl.textContent = '';
-  // If the guess is correct, check if it's a sound system and if more remain to be guessed
+  
+  // If the response is correct, check if it's a sound system and if more remain to be guessed
   if (isCorrect) {
     handleCorrectResponse(responseValue);
     return;
@@ -322,6 +323,7 @@ function validateResponse(inputValue: string, infoObj: any): boolean {
   return true;
 }
 
+// Find a matching key in the roundInfo object
 function findMatchingKey(value: string, infoObj: any, normalize: (str: string) => string): string | null {
   for (const [key, v] of Object.entries(infoObj)) {
     if (key === 'Sound system' && Array.isArray(v)) {
@@ -338,19 +340,19 @@ function findMatchingKey(value: string, infoObj: any, normalize: (str: string) =
 }
 
 function isWinner(): boolean {
-  // For sound system, check if all are guessed
+  // For sound system, check if all sounds are already responded
   if (
     appState.roundInfo['Sound system'] &&
     Array.isArray(appState.roundInfo['Sound system']) &&
     appState.roundInfo['Sound system'].length > 1
   ) {
-    const allGuessed = appState.roundInfo['Sound system'].every(sound =>
+    const allResponded = appState.roundInfo['Sound system'].every(sound =>
       appState.correctReponses.includes('Sound system:' + sound)
     );
     const allOther = Object.keys(appState.roundInfo)
       .filter(k => k !== 'Sound system')
       .every(k => appState.correctReponses.includes(k));
-    return allGuessed && allOther;
+    return allResponded && allOther;
   } else if (
     appState.roundInfo &&
     appState.correctReponses.length === Object.keys(appState.roundInfo).length

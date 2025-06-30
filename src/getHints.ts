@@ -132,7 +132,7 @@ export function getYearHint(appState: { [key: string]: any }, isCorrect?: boolea
   return '';
 }
 
-export function shouldShowNextSoundHint(roundInfo: { [key: string]: string | string[] }, correctReponses: string[], responseValue: string): { isSoundSystem: boolean, moreToGuess: boolean } {
+export function shouldShowNextSoundHint(roundInfo: { [key: string]: string | string[] }, correctReponses: string[], responseValue: string): { isSoundSystem: boolean, moreToFind: boolean } {
   const soundSystems = roundInfo['Sound system'];
   // Check if responseValue matches a sound system
   let isSoundSystem = false;
@@ -146,8 +146,8 @@ export function shouldShowNextSoundHint(roundInfo: { [key: string]: string | str
   const guessedSounds = Array.isArray(soundSystems)
     ? soundSystems.filter(s => correctReponses.includes('Sound system:' + s)).length
     : (correctReponses.includes('Sound system:' + soundSystems) ? 1 : 0);
-  const moreToGuess = totalSounds > 1 && guessedSounds < totalSounds;
-  return { isSoundSystem, moreToGuess };
+  const moreToFind = totalSounds > 1 && guessedSounds < totalSounds;
+  return { isSoundSystem, moreToFind };
 }
 
 export function getLastChanceHint(appState: any): string {
