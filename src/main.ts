@@ -58,10 +58,7 @@ function updateTriesUsed() {
     }
 }
 
-
-
 function showNextImage(appState: AppState) {
-  
     appState.roundImage++
     // Update image number counter
     const imgCounter = document.getElementById('round-image-counter')
@@ -71,7 +68,6 @@ function showNextImage(appState: AppState) {
     // Next image logic
     const img = document.querySelector('.game img') as HTMLImageElement
     if (img) img.src = `/parties/${appState.currentImage}-${appState.roundImage}.png`
-  
 }
 
 
@@ -120,19 +116,15 @@ const guessInput = document.getElementById('guess-input') as HTMLInputElement
 
 function handleResponse(responseValue: string) {
   // Clear all hint messages first
-  deleteHints()
-
+  deleteHint()
   if (!responseValue || !appState.roundInfo) return
-
-  const isCorrect = validateInputValue(responseValue, appState.roundInfo);
-  
+  const isCorrect = validateResponse(responseValue, appState.roundInfo);
   if (isCorrect) {
     handleCorrectResponse();
   } else {
     handleIncorrectResponse(responseValue, isCorrect);
   }
   guessInput.value = '';
-
 }
 
 function handleCorrectResponse(){
@@ -165,7 +157,6 @@ function handleIncorrectResponse(responseValue: string, isCorrect: boolean = fal
     } else {
       // Handle text hint
       handleTextHint(responseValue, isCorrect);
-      
     }
 }
 
@@ -193,14 +184,13 @@ function handleIncorrectResponseTextHint(responseValue: string) {
     displayHint(getLastChanceHint(appState));
     return;
   }
-  console.log(`Incorrect guess: ${responseValue}`);
   let partyHint = '';
   let soundHint = '';
   let countryHint = '';
   const partyHintThreshold = Math.floor(MAX_TRIES / 3);
   const soundHintThreshold = Math.floor(MAX_TRIES / (appState.roundInfo['Party'] ? 2 : 3));
   const countryHintThreshold = Math.floor((MAX_TRIES * 2) / 3);
-  console.log(`Tries used: ${appState.triesUsed}, Party hint threshold: ${partyHintThreshold}, Sound hint threshold: ${soundHintThreshold}, Country hint threshold: ${countryHintThreshold}`);
+
   if (
     appState.triesUsed === partyHintThreshold &&
     appState.roundInfo['Party'] &&
@@ -230,6 +220,7 @@ function handleIncorrectResponseTextHint(responseValue: string) {
   if (hintMessage.trim()) displayHint(hintMessage.trim());
 }
 
+// Check if it's the last chance
 function isLastChance(): boolean {
   const remainingKeys = Object.keys(appState.roundInfo).filter(key => {
     if (key === 'Sound system' && Array.isArray(appState.roundInfo[key])) {
@@ -286,7 +277,8 @@ function gameOver() {
   if (tryAgain) tryAgain.style.display = 'block';
 }
 
-function validateInputValue(inputValue: string, infoObj: any): boolean {
+// Validate the response against the roundInfo
+function validateResponse(inputValue: string, infoObj: any): boolean {
   // Normalize input for comparison
   const normalize = (str: string) => str.toLowerCase().replace(/\s+/g, '');
   const value = normalize(inputValue.trim());
@@ -355,7 +347,7 @@ function displayHint(hintMessage: string) {
   hintEl.innerHTML = `<p>${hintMessage}</p>`;
 }
 
-function deleteHints(){
+function deleteHint(){
   const hintWrap = document.getElementById('hints-wrap');
   if (hintWrap) hintWrap.innerHTML = '';
 }
