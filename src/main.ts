@@ -3,6 +3,7 @@ import { loadAndTriggerConfetti } from './confetti'
 import { setupRoundInfo } from './setupRoundInfo'
 import { getYearHint, getSoundHint, getCountryHint, getPartyHint, shouldShowNextSoundHint, getLastChanceHint } from './getHints'
 import { updateResultsUI } from './updateResultsUi'
+import { playErrorSound, playWinnerSound, playHintSound, playCorrectSound } from './playSounds'
 
 
 
@@ -99,7 +100,10 @@ function renderGameUI(appState: AppState) {
       <h2 style="text-align:center; color:rgb(255, 0, 0);">🚓 You failed! 🚨</h2>
       <button id="try-again-btn" style="margin:0 auto;" type="button">Try again</button>
     </div>
-    <h2 style="display:none; margin:0 auto; color:#50C878" id="you-win">🎉 You win!!! 🎉</h2>
+    <div style="display:none;" id="you-win">
+      <h2 style="text-align:center; margin:0 auto; margin-bottom:50px; color:#50C878" >🎉 You win!!! 🎉</h2>
+      <p style="text-align:center; margin:0 auto;font-size: 12px; color: #808080";>Sound credit: <br> Kan10 - oldskool_(extract_liveset_recorded_at_mackitek_studio)</p>
+    </div>
     <footer class="footer">
       <a href="https://underave.net"><img src="/underave.png" alt="underave" style="max-width: 150px; width: 100%; margin: 1rem auto; display: block; border-radius: 8px;" /></a>
     </footer>
@@ -129,35 +133,42 @@ function handleResponse(responseValue: string) {
 
 function handleCorrectResponse(){
   // If the guess is correct, check if it's a winner // Check if the user has won
-    if (isWinner()) {
-      gameWinner();
-    }
-    updateResultsUI(appState);
+  if (isWinner()) {
+    gameWinner();
+  } else {
+    playCorrectSound();
+  }
+  updateResultsUI(appState);
 }
 
-
 function handleIncorrectResponse(responseValue: string, isCorrect: boolean = false) {
-  updateTriesUsed();
-    if (appState.triesUsed % IMAGE_ERRORS_THRESHOLD === 0 && appState.roundImage < appState.maxImages) {
-      showNextImage(appState);
-    }
-    // If tries used exceeds max tries, end the game
-    if (appState.triesUsed >= MAX_TRIES) {
-      gameOver();
-    }
 
-    // Handle numeric guess
-    if (!isNaN(Number(responseValue))) {
-      const yearHint = getYearHint(appState, isCorrect, responseValue);
-      if (isCorrect) {
-        displayHint('✅ That\'s correct!');
-      } else {
-        displayHint(`${yearHint}`);
-      }
+  updateTriesUsed();
+  playErrorSound(appState.triesUsed, MAX_TRIES);
+
+  // Show next image
+  if (appState.triesUsed % IMAGE_ERRORS_THRESHOLD === 0 && appState.roundImage < appState.maxImages) {
+    showNextImage(appState);
+  }
+  // If tries used exceeds max tries, end the game
+  if (appState.triesUsed >= MAX_TRIES) {
+    gameOver();
+    return;
+  }
+
+  // Handle numeric guess
+  if (!isNaN(Number(responseValue))) {
+    const yearHint = getYearHint(appState, isCorrect, responseValue);
+    if (isCorrect) {
+      displayHint('✅ That\'s correct!');
     } else {
-      // Handle text hint
-      handleTextHint(responseValue, isCorrect);
+      displayHint(`${yearHint}`);
+      playHintSound();
     }
+  } else {
+    // Handle text hint
+    handleTextHint(responseValue, isCorrect);
+  }
 }
 
 function handleTextHint(responseValue: string, isCorrect: boolean) {
@@ -182,6 +193,7 @@ function handleTextHint(responseValue: string, isCorrect: boolean) {
 function handleIncorrectResponseTextHint() {
   if (isLastChance()) {
     displayHint(getLastChanceHint(appState));
+    playHintSound();
     return;
   }
   let partyHint = '';
@@ -217,7 +229,10 @@ function handleIncorrectResponseTextHint() {
   if (partyHint) hintMessage += `${partyHint} <br>`;
   if (soundHint) hintMessage += `${soundHint} <br>`;
   if (countryHint) hintMessage += `${countryHint}`;
-  if (hintMessage.trim()) displayHint(hintMessage.trim());
+  if (hintMessage.trim()) {
+    displayHint(hintMessage.trim());
+    playHintSound();
+  }
 }
 
 // Check if it's the last chance
@@ -267,14 +282,25 @@ function gameWinner() {
   if (gameDiv) gameDiv.style.display = 'none'
   if (youWin) youWin.style.display = 'block'
   loadAndTriggerConfetti()
+  playWinnerSound();
+  displayWinnerSoundCredits();
+}
+
+function displayWinnerSoundCredits() {
+  const soundCredits = document.createElement('div');
+  soundCredits.id = 'sound-credits';
 }
 
 function gameOver() {
-// Game over logic
+  // Game over logic
   const gameDiv = document.querySelector('.game') as HTMLElement;
   const tryAgain = document.getElementById('try-again') as HTMLButtonElement;
   if (gameDiv) gameDiv.style.display = 'none';
   if (tryAgain) tryAgain.style.display = 'block';
+  // Play police sound in a loop
+  const audio = new Audio('/sounds/game-over-sound.mp3');
+  audio.loop = true;
+  audio.play();
 }
 
 // Validate the response against the roundInfo
@@ -347,7 +373,7 @@ function displayHint(hintMessage: string) {
   hintEl.innerHTML = `<p>${hintMessage}</p>`;
 }
 
-function deleteHint(){
+function deleteHint() {
   const hintWrap = document.getElementById('hints-wrap');
   if (hintWrap) hintWrap.innerHTML = '';
 }
