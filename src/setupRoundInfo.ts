@@ -1,18 +1,26 @@
 import { parties } from './parties'
 
-export function setupRoundInfo(appState: {
+function getPlayedGameIds(): string[] {
+  const key = 'playedGameIds';
+  const stored = localStorage.getItem(key);
+  return stored ? JSON.parse(stored) : [];
+}
+
+export function setupRoundInfo(appState: {    
   currentImage: string;
   roundInfo: { [key: string]: string | string[] };
 }) {
-  const randomParty = parties[Math.floor(Math.random() * parties.length)]
-  appState.currentImage = randomParty.id
+  const playedIds = getPlayedGameIds();
+  const availableParties = parties.filter(p => !playedIds.includes(p.id));
+  const randomParty = availableParties[Math.floor(Math.random() * availableParties.length)];
+  appState.currentImage = randomParty.id;
 
-  const filtered: { [key: string]: string | string[] } = {}
+  const filtered: { [key: string]: string | string[] } = {};
   for (const [k, v] of Object.entries(randomParty)) {
-    if (k === 'id') continue
+    if (k === 'id') continue;
     if (typeof v === 'string' || (Array.isArray(v) && v.every(x => typeof x === 'string'))) {
-      filtered[k] = v
+      filtered[k] = v;
     }
   }
-  appState.roundInfo = filtered
+  appState.roundInfo = filtered;
 }

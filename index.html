@@ -9,7 +9,27 @@
     <meta name="robots" content="noindex, nofollow" />
   </head>
   <body>
-    <div id="app"></div>
+    <div class="wrap">
+      <h1>🔊 Tekno Quiz</h1>
+      <p>Guess the party name, sound system, year or country based on the image:</p>
+      <div id="app"></div>
+      <div id="try-again" style="display:none;">
+        <h2 style="text-align:center; color:rgb(255, 0, 0);">🚓 You failed! 🚨</h2>
+        <button id="try-again-btn" style="margin:0 auto;" type="button">Try again</button>
+      </div>
+      <div style="display:none;" id="you-win">
+        <h2 style="text-align:center; margin:0 auto; margin-bottom:20px; color:#50C878;">🎉 You win!!! 🎉</h2>
+         <button id="new-round-btn" style="margin:0 auto; margin-bottom:20px;" type="button">Next round</button>
+        <p style="text-align:center; margin:0 auto;font-size: 12px; color: #808080;">Sound credit: <br> Kan10 - oldskool_(extract_liveset_recorded_at_mackitek_studio)</p>
+      </div>
+      <div style="display:none;" id="you-won-all-games">
+        <h2 style="text-align:center; color:#50C878;">🎉 Congratulations, you won all games!!! 🎉</h2>
+        <button id="reset-all-btn" style="margin:0 auto;" type="button">Reset all data, and restart game</button>
+      </div>
+      <footer class="footer">
+        <a href="https://underave.net"><img src="/underave.png" alt="underave" style="max-width: 150px; width: 100%; margin: 1rem auto; display: block; border-radius: 8px;" /></a>
+      </footer>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

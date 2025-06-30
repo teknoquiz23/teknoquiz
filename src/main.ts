@@ -1,9 +1,10 @@
 import './style.css'
 import { loadAndTriggerConfetti } from './confetti'
-import { setupRoundInfo } from './setupRoundInfo'
+import { setupRoundInfo } from './setupRoundInfo';
 import { getYearHint, getSoundHint, getCountryHint, getPartyHint, shouldShowNextSoundHint, getLastChanceHint } from './getHints'
 import { updateResultsUI } from './updateResultsUi'
 import { playErrorSound, playWinnerSound, playHintSound, playCorrectSound } from './playSounds'
+import { parties } from './parties';
 
 
 
@@ -25,7 +26,27 @@ const appState: AppState = {
   maxImages: 3
 }
 
-setupRoundInfo(appState)
+function getPlayedGameIds(): string[] {
+  const key = 'playedGameIds';
+  const stored = localStorage.getItem(key);
+  return stored ? JSON.parse(stored) : [];
+}
+function displayYouWonAllGamesMessage() {
+  const youWonAllGamesEl = document.getElementById('you-won-all-games');
+  const gameDiv = document.getElementById('app');
+  if (gameDiv) gameDiv.style.display = 'none';
+  if (youWonAllGamesEl) youWonAllGamesEl.style.display = 'block';
+}
+
+const playedIds = getPlayedGameIds();
+const unplayedParties = parties.filter(p => !playedIds.includes(p.id));
+
+if (unplayedParties.length === 0) {
+  // Show the "you won all games" message and do not call setupRoundInfo
+  displayYouWonAllGamesMessage();
+} else {
+  setupRoundInfo(appState);
+}
 
 const MAX_TRIES = getMaxTries();
 const IMAGE_ERRORS_THRESHOLD = 3; // Show next image after every 3 incorrect tries
@@ -75,9 +96,8 @@ function showNextImage(appState: AppState) {
 // --- Rendering ---
 function renderGameUI(appState: AppState) {
   document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-    <h1>🔊 Tekno Quiz</h1>
     <div class="game">
-      <p>Guess the party name, sound system, year or country based on the image:</p>
+      
       <img src="/parties/${appState.currentImage}-${appState.roundImage}.png" alt="Random party" style="max-width: 500px; width: 100%; border-radius: 8px; " />
       
       <p id="round-image-counter" style="text-align: center; margin:0; margin-bottom: 0; text-align: center; font-size: 12px;">Image ${appState.roundImage} of ${appState.maxImages}</p>
@@ -96,17 +116,6 @@ function renderGameUI(appState: AppState) {
         </div>
       </div>
     </div>
-    <div id="try-again" style="display:none;">
-      <h2 style="text-align:center; color:rgb(255, 0, 0);">🚓 You failed! 🚨</h2>
-      <button id="try-again-btn" style="margin:0 auto;" type="button">Try again</button>
-    </div>
-    <div style="display:none;" id="you-win">
-      <h2 style="text-align:center; margin:0 auto; margin-bottom:50px; color:#50C878" >🎉 You win!!! 🎉</h2>
-      <p style="text-align:center; margin:0 auto;font-size: 12px; color: #808080";>Sound credit: <br> Kan10 - oldskool_(extract_liveset_recorded_at_mackitek_studio)</p>
-    </div>
-    <footer class="footer">
-      <a href="https://underave.net"><img src="/underave.png" alt="underave" style="max-width: 150px; width: 100%; margin: 1rem auto; display: block; border-radius: 8px;" /></a>
-    </footer>
   `
 }
 
@@ -263,6 +272,15 @@ guessInput?.addEventListener('keydown', e => {
 document.getElementById('try-again-btn')?.addEventListener('click', () => {
   window.location.reload()
 })
+document.getElementById('new-round-btn')?.addEventListener('click', () => {
+  window.location.reload()
+})
+
+document.getElementById('reset-all-btn')?.addEventListener('click', () => {
+  localStorage.removeItem('playedGameIds')
+  window.location.reload()
+})
+
 
 
 // Dynamically generate #party-data content based on roundInfo keys
@@ -289,6 +307,7 @@ function gameWinner() {
   if (youWin) youWin.style.display = 'block'
   loadAndTriggerConfetti()
   playWinnerSound();
+  savePlayedGameId(appState.currentImage);
 }
 
 function gameOver() {
@@ -381,5 +400,12 @@ function deleteHint() {
 }
 
 
-
-
+function savePlayedGameId(id: string) {  
+  const key = 'playedGameIds';
+  const stored = localStorage.getItem(key);
+  let ids: string[] = stored ? JSON.parse(stored) : [];
+  if (!ids.includes(id)) {
+    ids.push(id);
+    localStorage.setItem(key, JSON.stringify(ids));
+  }
+}
