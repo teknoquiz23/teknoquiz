@@ -128,7 +128,25 @@ function handleResponse(responseValue: string) {
   const isCorrect = validateInputValue(responseValue, appState.roundInfo);
   
   if (!isCorrect) {
-    updateTriesUsed();
+    handleIncorrectResponse(responseValue, isCorrect);
+  } else {
+    handleCorrectResponse();
+  }
+  guessInput.value = '';
+
+}
+
+function handleCorrectResponse(){
+  // If the guess is correct, check if it's a winner // Check if the user has won
+    if (isWinner()) {
+      gameWinner();
+    }
+    updateResultsUI(appState);
+}
+
+
+function handleIncorrectResponse(responseValue: string, isCorrect: boolean = false) {
+  updateTriesUsed();
     if (appState.triesUsed % IMAGE_ERRORS_THRESHOLD === 0 && appState.roundImage < appState.maxImages) {
       showNextImage(appState);
     }
@@ -150,10 +168,6 @@ function handleResponse(responseValue: string) {
       handleTextHint(responseValue, isCorrect);
       if (hintEl) hintEl.textContent = '';
     }
-  }
-
-  guessInput.value = '';
-
 }
 
 function handleTextHint(responseValue: string, isCorrect: boolean) {
@@ -170,10 +184,10 @@ function handleTextHint(responseValue: string, isCorrect: boolean) {
       return;
     }
   }
-  handleIncorrectResponse(responseValue);
+  handleIncorrectResponseTextHint(responseValue);
 }
 
-function handleIncorrectResponse(responseValue: string) {
+function handleIncorrectResponseTextHint(responseValue: string) {
   if (isLastChance()) {
     displayHint(getLastChanceHint(appState));
     return;
@@ -285,12 +299,6 @@ function validateInputValue(inputValue: string, infoObj: any): boolean {
   if (!Array.isArray(appState.correctReponses)) appState.correctReponses = [];
   if (!appState.correctReponses.includes(foundKey)) {
     appState.correctReponses.push(foundKey);
-    updateResultsUI(appState);
-  }
-
-  // Check if the user has won
-  if (isWinner()) {
-    gameWinner();
   }
   return true;
 }
