@@ -46,10 +46,8 @@ function shakeText(element: HTMLElement) {
   element.addEventListener('animationend', removeShake)
 }
 
-function updateTriesUsed(isCorrect: boolean) {
-  if (!isCorrect) {
+function updateTriesUsed() {
     appState.triesUsed++;
-
     const triesEl = document.getElementById('tries-used');
     if (triesEl) {
       triesEl.textContent = `${appState.triesUsed}`;
@@ -58,20 +56,12 @@ function updateTriesUsed(isCorrect: boolean) {
     if (triesWrap) {
       shakeText(triesWrap);
     }
-    showNextImage(appState);
-  }
-
-  if (appState.triesUsed >= getMaxTries()) {
-    // Game over logic
-    const gameDiv = document.querySelector('.game') as HTMLElement;
-    const tryAgain = document.getElementById('try-again') as HTMLButtonElement;
-    if (gameDiv) gameDiv.style.display = 'none';
-    if (tryAgain) tryAgain.style.display = 'block';
-  }
 }
 
+
+
 function showNextImage(appState: AppState) {
-  if (appState.triesUsed % IMAGE_ERRORS_THRESHOLD === 0 && appState.roundImage < appState.maxImages) {
+  
     appState.roundImage++
     // Update image number counter
     const imgCounter = document.getElementById('round-image-counter')
@@ -81,7 +71,7 @@ function showNextImage(appState: AppState) {
     // Next image logic
     const img = document.querySelector('.game img') as HTMLImageElement
     if (img) img.src = `/parties/${appState.currentImage}-${appState.roundImage}.png`
-  }
+  
 }
 
 
@@ -136,20 +126,30 @@ function handleResponse(responseValue: string) {
   if (!responseValue || !appState.roundInfo) return
 
   const isCorrect = validateInputValue(responseValue, appState.roundInfo);
-  updateTriesUsed(isCorrect);
-
-  // Handle numeric guess
-  if (!isNaN(Number(responseValue))) {
-    const yearHint = getYearHint(appState, isCorrect, responseValue);
-    if (isCorrect) {
-      displayHint('✅ That\'s correct!');
-    } else {
-      displayHint(`${yearHint}`);
+  
+  if (!isCorrect) {
+    updateTriesUsed();
+    if (appState.triesUsed % IMAGE_ERRORS_THRESHOLD === 0 && appState.roundImage < appState.maxImages) {
+      showNextImage(appState);
     }
-  } else {
-    // Handle text hint
-    handleTextHint(responseValue, isCorrect);
-    if (hintEl) hintEl.textContent = '';
+    // If tries used exceeds max tries, end the game
+    if (appState.triesUsed >= MAX_TRIES) {
+      gameOver();
+    }
+
+    // Handle numeric guess
+    if (!isNaN(Number(responseValue))) {
+      const yearHint = getYearHint(appState, isCorrect, responseValue);
+      if (isCorrect) {
+        displayHint('✅ That\'s correct!');
+      } else {
+        displayHint(`${yearHint}`);
+      }
+    } else {
+      // Handle text hint
+      handleTextHint(responseValue, isCorrect);
+      if (hintEl) hintEl.textContent = '';
+    }
   }
 
   guessInput.value = '';
@@ -254,12 +254,21 @@ function getPartyDataHTML(roundInfo: any): string {
     .join('')
 }
 
-function winner() {
+function gameWinner() {
+  // Game winner logic
   const gameDiv = document.querySelector('.game') as HTMLElement
   const youWin = document.getElementById('you-win') as HTMLElement
   if (gameDiv) gameDiv.style.display = 'none'
   if (youWin) youWin.style.display = 'block'
   loadAndTriggerConfetti()
+}
+
+function gameOver() {
+// Game over logic
+  const gameDiv = document.querySelector('.game') as HTMLElement;
+  const tryAgain = document.getElementById('try-again') as HTMLButtonElement;
+  if (gameDiv) gameDiv.style.display = 'none';
+  if (tryAgain) tryAgain.style.display = 'block';
 }
 
 function validateInputValue(inputValue: string, infoObj: any): boolean {
@@ -281,7 +290,7 @@ function validateInputValue(inputValue: string, infoObj: any): boolean {
 
   // Check if the user has won
   if (isWinner()) {
-    winner();
+    gameWinner();
   }
   return true;
 }

@@ -60,7 +60,6 @@ export function getCountryHint(roundInfo: { [key: string]: string | string[] }, 
   
   // If the country is already guessed, return empty string
   if (correctReponses && correctReponses.includes('Country')) return '';
-  console.log('correctReponses', correctReponses);
 
   // Define hint levels
   const level1HintChars = 1;
@@ -75,7 +74,7 @@ export function getCountryHint(roundInfo: { [key: string]: string | string[] }, 
     if (level === 2) {
       masked = words.map(word => word.slice(0, level2HintChars).toUpperCase() + 'X'.repeat(word.length - level2HintChars));
     } else {
-      masked = words.map(word => word.slice(0, level1HintChars).toUpperCase() + word.slice(level1HintChars));
+      masked = words.map(word => word.slice(0, level1HintChars).toUpperCase() + 'X'.repeat(word.length - level1HintChars));
     }
     return `💡 The country: ${masked.join(' ')} (${words.length} word${words.length > 1 ? 's' : ''})`;
   }
