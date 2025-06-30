@@ -116,21 +116,20 @@ renderGameUI(appState)
 // Now set up event listeners and dynamic content
 const guessBtn = document.getElementById('guess-btn')
 const guessInput = document.getElementById('guess-input') as HTMLInputElement
-const hintEl = document.getElementById('hint')
+
 
 function handleResponse(responseValue: string) {
   // Clear all hint messages first
-  const hintWrap = document.getElementById('hints-wrap');
-  if (hintWrap) hintWrap.innerHTML = '';
+  deleteHints()
 
   if (!responseValue || !appState.roundInfo) return
 
   const isCorrect = validateInputValue(responseValue, appState.roundInfo);
   
-  if (!isCorrect) {
-    handleIncorrectResponse(responseValue, isCorrect);
-  } else {
+  if (isCorrect) {
     handleCorrectResponse();
+  } else {
+    handleIncorrectResponse(responseValue, isCorrect);
   }
   guessInput.value = '';
 
@@ -166,11 +165,13 @@ function handleIncorrectResponse(responseValue: string, isCorrect: boolean = fal
     } else {
       // Handle text hint
       handleTextHint(responseValue, isCorrect);
-      if (hintEl) hintEl.textContent = '';
+      
     }
 }
 
 function handleTextHint(responseValue: string, isCorrect: boolean) {
+  const hintEl = document.getElementById('hint')
+  if (hintEl) hintEl.textContent = '';
   // If the guess is correct, check if it's a sound system and if more remain to be guessed
   if (isCorrect) {
     const correct = Array.isArray(appState.correctReponses) ? appState.correctReponses : [];
@@ -353,6 +354,12 @@ function displayHint(hintMessage: string) {
   }
   hintEl.innerHTML = `<p>${hintMessage}</p>`;
 }
+
+function deleteHints(){
+  const hintWrap = document.getElementById('hints-wrap');
+  if (hintWrap) hintWrap.innerHTML = '';
+}
+
 
 
 
