@@ -288,12 +288,6 @@ function gameWinner() {
   if (youWin) youWin.style.display = 'block'
   loadAndTriggerConfetti()
   playWinnerSound();
-  displayWinnerSoundCredits();
-}
-
-function displayWinnerSoundCredits() {
-  const soundCredits = document.createElement('div');
-  soundCredits.id = 'sound-credits';
 }
 
 function gameOver() {
@@ -302,7 +296,8 @@ function gameOver() {
   const tryAgain = document.getElementById('try-again') as HTMLButtonElement;
   if (gameDiv) gameDiv.style.display = 'none';
   if (tryAgain) tryAgain.style.display = 'block';
-  // Play police sound in a loop
+  
+  // Play game over sound
   const audio = new Audio('/sounds/game-over-sound.mp3');
   audio.loop = true;
   audio.play();
