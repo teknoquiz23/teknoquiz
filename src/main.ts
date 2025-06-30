@@ -124,21 +124,34 @@ function handleResponse(responseValue: string) {
   if (!responseValue || !appState.roundInfo) return
   const isCorrect = validateResponse(responseValue, appState.roundInfo);
   if (isCorrect) {
-    handleCorrectResponse();
+    handleCorrectResponse(responseValue);
   } else {
     handleIncorrectResponse(responseValue, isCorrect);
   }
   guessInput.value = '';
 }
 
-function handleCorrectResponse(){
-  // If the guess is correct, check if it's a winner // Check if the user has won
+
+
+function moreSoundsToGuess(responseValue  : string): boolean {
+  // Logic for handling more sounds to guess
+  const { isSoundSystem, moreToGuess } = shouldShowNextSoundHint(appState.roundInfo, appState.correctReponses, responseValue);
+  return isSoundSystem && moreToGuess;
+}
+
+function handleCorrectResponse(responseValue: string) {
   if (isWinner()) {
     gameWinner();
+  } else if (moreSoundsToGuess(responseValue)) {
+    const hintMessage = getSoundHint(appState.roundInfo, appState.correctReponses);
+    playCorrectSound();
+    displayHint(`✅ That\'s correct!<br>${hintMessage}`);
+    updateResultsUI(appState);
   } else {
     playCorrectSound();
+    displayHint('✅ That\'s correct!');
+    updateResultsUI(appState);
   }
-  updateResultsUI(appState);
 }
 
 function handleIncorrectResponse(responseValue: string, isCorrect: boolean = false) {
@@ -172,20 +185,12 @@ function handleIncorrectResponse(responseValue: string, isCorrect: boolean = fal
 }
 
 function handleTextHint(responseValue: string, isCorrect: boolean) {
-  const hintEl = document.getElementById('hint')
+  const hintEl = document.getElementById('hint');
   if (hintEl) hintEl.textContent = '';
   // If the guess is correct, check if it's a sound system and if more remain to be guessed
   if (isCorrect) {
-    const correct = Array.isArray(appState.correctReponses) ? appState.correctReponses : [];
-    const { isSoundSystem, moreToGuess } = shouldShowNextSoundHint(appState.roundInfo, correct, responseValue);
-    if (isSoundSystem && moreToGuess) {
-      const nextHint = getSoundHint(appState.roundInfo, correct);
-      displayHint(`✅ That\'s correct!<br>${nextHint}`);
-      return;
-    } else {
-      displayHint('✅ That\'s correct!');
-      return;
-    }
+    handleCorrectResponse(responseValue);
+    return;
   }
   handleIncorrectResponseTextHint();
 }
