@@ -176,10 +176,10 @@ function handleTextHint(responseValue: string, isCorrect: boolean) {
       return;
     }
   }
-  handleIncorrectResponseTextHint(responseValue);
+  handleIncorrectResponseTextHint();
 }
 
-function handleIncorrectResponseTextHint(responseValue: string) {
+function handleIncorrectResponseTextHint() {
   if (isLastChance()) {
     displayHint(getLastChanceHint(appState));
     return;
