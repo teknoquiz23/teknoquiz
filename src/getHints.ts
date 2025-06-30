@@ -29,13 +29,18 @@ export function getSoundHint(roundInfo: { [key: string]: string | string[] }, co
     // If correctReponses is provided, find the first unguessed sound
     if (correctReponses && correctReponses.length > 0) {
       const unguessed = soundVal.find(s => !correctReponses.includes('Sound system:' + s));
-      sound = unguessed || soundVal[0] || ''
+      if (!unguessed) return '';
+      sound = unguessed;
     } else {
       sound = soundVal[0] || ''
     }
   } else {
     sound = soundVal || ''
   }
+  // If the sound is already guessed, return empty string
+  if (correctReponses && correctReponses.includes('Sound system:' + sound)) return '';
+  
+
   if (sound.length > 0) {
     const words = sound.trim().split(/\s+/)
     let masked;
@@ -51,11 +56,19 @@ export function getSoundHint(roundInfo: { [key: string]: string | string[] }, co
   return ''
 }
 
-export function getCountryHint(roundInfo: { [key: string]: string | string[] }, level: number = 1): string {
+export function getCountryHint(roundInfo: { [key: string]: string | string[] }, level: number = 1, correctReponses?: string[]): string {
+  
+  // If the country is already guessed, return empty string
+  if (correctReponses && correctReponses.includes('Country')) return '';
+  console.log('correctReponses', correctReponses);
+
+  // Define hint levels
   const level1HintChars = 1;
   const level2HintChars = 2;
   const countryVal = roundInfo['Country']
   const country = Array.isArray(countryVal) ? countryVal[0] : countryVal
+  
+  // If country is not defined or empty, return empty string
   if (country && country.length > 0) {
     const words = country.trim().split(/\s+/)
     let masked;
@@ -69,11 +82,17 @@ export function getCountryHint(roundInfo: { [key: string]: string | string[] }, 
   return ''
 }
 
-export function getPartyHint(roundInfo: { [key: string]: string | string[] }, level: number = 1): string {
+export function getPartyHint(roundInfo: { [key: string]: string | string[] }, level: number = 1, correctReponses?: string[]): string {
+  
+
+  // If the party is already guessed, return empty string
+  if (correctReponses && correctReponses.includes('Party')) return '';
+
   const level1HintChars = 2;
   const level2HintChars = 3;
   const partyVal = roundInfo['Party']
   const party = Array.isArray(partyVal) ? partyVal[0] : partyVal
+  
   if (party && party.length > 0) {
     const words = party.trim().split(/\s+/)
     let masked;
@@ -88,6 +107,9 @@ export function getPartyHint(roundInfo: { [key: string]: string | string[] }, le
 }
 
 export function getYearHint(appState: { [key: string]: any }, isCorrect?: boolean, responseValue?: string, level: number = 1): string {
+
+  // If the year is already guessed, return empty string
+  if (appState.correctReponses && appState.correctReponses.includes('Year')) return '';
   if (
     typeof isCorrect === 'boolean' &&
     responseValue !== undefined &&

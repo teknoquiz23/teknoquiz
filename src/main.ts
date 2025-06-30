@@ -129,6 +129,10 @@ const guessInput = document.getElementById('guess-input') as HTMLInputElement
 const hintEl = document.getElementById('hint')
 
 function handleResponse(responseValue: string) {
+  // Clear all hint messages first
+  const hintWrap = document.getElementById('hints-wrap');
+  if (hintWrap) hintWrap.innerHTML = '';
+
   if (!responseValue || !appState.roundInfo) return
 
   const isCorrect = validateInputValue(responseValue, appState.roundInfo);
