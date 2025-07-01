@@ -37,6 +37,10 @@ function displayYouWonAllGamesMessage() {
   const gameDiv = document.getElementById('app');
   if (gameDiv) gameDiv.style.display = 'none';
   if (youWonAllGamesEl) youWonAllGamesEl.style.display = 'block';
+  gtag('event', 'YouWonAllGamesMessage', {
+    event_category: 'gameplay',
+    value: 1
+  });
 }
 
 const playedIds = getPlayedGameIds();
@@ -162,12 +166,17 @@ function handleCorrectResponse(responseValue: string) {
     displayHint('✅ That\'s correct!');
     updateResultsUI(appState);
   }
+  gtag('event', 'handleCorrectResponse', {
+    event_category: 'Responses',
+    event_label: appState.roundInfo['id'] || '',
+    value: 1
+  });
 }
 
 function handleIncorrectResponse(responseValue: string, isCorrect: boolean = false) {
   gtag('event', 'handleIncorrectResponse', {
     event_category: 'Responses',
-    event_label: 'user_response',
+    event_label: appState.roundInfo['id'] || '',
     value: 1
   });
   
@@ -314,6 +323,11 @@ function gameWinner() {
   loadAndTriggerConfetti()
   playWinnerSound();
   savePlayedGameId(appState.currentImage);
+  gtag('event', 'gameWinner', {
+    event_category: 'gameplay',
+    event_label: appState.roundInfo['id'] || '', 
+    value: 1
+  });
 }
 
 function gameOver() {
@@ -327,8 +341,8 @@ function gameOver() {
   audio.loop = true;
   audio.play();
   gtag('event', 'gameOver', {
-    event_category: 'Responses',
-    event_label: appState.roundInfo['id'] || '', // send id, not currentImage
+    event_category: 'gameplay',
+    event_label: appState.roundInfo['id'] || '',
     value: 1
   });
 }
