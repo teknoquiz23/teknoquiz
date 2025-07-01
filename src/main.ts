@@ -116,7 +116,7 @@ function renderGameUI(appState: AppState) {
       <div id="hints-wrap" style="margin:0;margin-bottom: 2rem;"></div>
       <div>
         <div id="party-data" style="text-align:left;" class="text-left w-full max-w-md space-y-2">
-          ${getPartyDataHTML(appState.roundInfo)}
+          ${generateRoundHTML(appState.roundInfo)}
         </div>
       </div>
     </div>
@@ -173,7 +173,6 @@ function handleCorrectResponse(responseValue: string) {
 }
 
 function handleIncorrectResponse(responseValue: string, isCorrect: boolean = false) {
-  console.log( 'appState.roundInfo', appState.roundInfo);
   
   gtag('event', 'handleIncorrectResponse', {
     event_category: 'Responses',
@@ -197,31 +196,17 @@ function handleIncorrectResponse(responseValue: string, isCorrect: boolean = fal
   // Handle numeric reponse
   if (!isNaN(Number(responseValue))) {
     const yearHint = getYearHint(appState, isCorrect, responseValue);
-    if (isCorrect) {
-      displayHint('✅ That\'s correct!');
-    } else {
-      displayHint(`${yearHint}`);
+    displayHint(`${yearHint}`);
       playHintSound();
-    }
   } else {
     // Handle text hint
-    handleTextHint(responseValue, isCorrect);
+    handleTextHint();
   }
 }
 
-function handleTextHint(responseValue: string, isCorrect: boolean) {
+function handleTextHint() {
   const hintEl = document.getElementById('hint');
   if (hintEl) hintEl.textContent = '';
-  
-  // If the response is correct, check if it's a sound system and if more remain to be guessed
-  if (isCorrect) {
-    handleCorrectResponse(responseValue);
-    return;
-  }
-  handleIncorrectResponseTextHint();
-}
-
-function handleIncorrectResponseTextHint() {
   if (isLastChance()) {
     displayHint(getLastChanceHint(appState));
     playHintSound();
@@ -298,8 +283,8 @@ document.getElementById('reset-all-btn')?.addEventListener('click', () => {
 
 
 
-// Dynamically generate #party-data content based on roundInfo keys
-function getPartyDataHTML(roundInfo: any): string {
+// Dynamically generate content based on roundInfo keys
+function generateRoundHTML(roundInfo: any): string {
   if (!roundInfo) return ''
   return Object.keys(roundInfo)
     .map(key => {
