@@ -164,7 +164,13 @@ function handleCorrectResponse(responseValue: string) {
 }
 
 function handleIncorrectResponse(responseValue: string, isCorrect: boolean = false) {
-
+  if (typeof gtag === 'function') {
+    gtag('event', 'handleIncorrectResponse', {
+      event_category: 'Responses',
+      //event_label: 'etiqueta_opcional',
+      value: 1
+    });
+  }
   updateTriesUsed();
   playErrorSound(appState.triesUsed, MAX_TRIES);
 
