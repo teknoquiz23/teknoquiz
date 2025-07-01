@@ -409,3 +409,26 @@ function savePlayedGameId(id: string) {
     localStorage.setItem(key, JSON.stringify(ids));
   }
 }
+
+// --- TESTS ---
+function testGetUnplayedParties() {
+  const parties = [
+    { id: 'a', name: 'Party A' },
+    { id: 'b', name: 'Party B' },
+    { id: 'c', name: 'Party C' }
+  ];
+  const playedIds1 = ['a'];
+  const playedIds2 = ['a', 'b', 'c'];
+  const playedIds3: string[] = [];
+
+  console.assert(getUnplayedParties(parties, playedIds1).length === 2, 'Test 1 failed');
+  console.assert(getUnplayedParties(parties, playedIds2).length === 0, 'Test 2 failed');
+  console.assert(getUnplayedParties(parties, playedIds3).length === 3, 'Test 3 failed');
+  console.log('All getUnplayedParties tests passed');
+}
+
+testGetUnplayedParties();
+
+function getUnplayedParties(parties: any[], playedIds: string[]): any[] {
+  return parties.filter(p => !playedIds.includes(p.id));
+}
