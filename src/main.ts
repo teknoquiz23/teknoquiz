@@ -1,3 +1,4 @@
+declare function gtag(...args: any[]): void;
 import './style.css'
 import { loadAndTriggerConfetti } from './confetti'
 import { setupRoundInfo } from './setupRoundInfo';
@@ -164,13 +165,12 @@ function handleCorrectResponse(responseValue: string) {
 }
 
 function handleIncorrectResponse(responseValue: string, isCorrect: boolean = false) {
-  if (typeof gtag === 'function') {
-    gtag('event', 'handleIncorrectResponse', {
-      event_category: 'Responses',
-      //event_label: 'etiqueta_opcional',
-      value: 1
-    });
-  }
+  gtag('event', 'handleIncorrectResponse', {
+    event_category: 'Responses',
+    event_label: 'user_response',
+    value: 1
+  });
+  
   updateTriesUsed();
   playErrorSound(appState.triesUsed, MAX_TRIES);
 
