@@ -322,11 +322,15 @@ function gameOver() {
   const tryAgain = document.getElementById('try-again') as HTMLButtonElement;
   if (gameDiv) gameDiv.style.display = 'none';
   if (tryAgain) tryAgain.style.display = 'block';
-  
   // Play game over sound
   const audio = new Audio('/sounds/game-over-sound.mp3');
   audio.loop = true;
   audio.play();
+  gtag('event', 'gameOver', {
+    event_category: 'Responses',
+    event_label: appState.roundInfo['id'] || '', // send id, not currentImage
+    value: 1
+  });
 }
 
 // Validate the response against the roundInfo
