@@ -15,7 +15,6 @@ interface AppState {
   roundInfo: { [key: string]: string | string[] };
   correctReponses: string[];
   roundImage: number;
-  maxImages: number;
 }
 
 const appState: AppState = {
@@ -23,8 +22,7 @@ const appState: AppState = {
   currentImage: '',
   roundInfo: {},
   correctReponses: [],
-  roundImage: 1,
-  maxImages: 3
+  roundImage: 1
 }
 
 function getPlayedGameIds(): string[] {
@@ -53,7 +51,8 @@ if (unplayedParties.length === 0) {
   setupRoundInfo(appState);
 }
 
-const MAX_TRIES = getMaxTries();
+const MAX_TRIES = getMaxTries();  // MAx tries depends on the number of items in roundInfo
+const MAX_IMAGES = 3; // Maximum number of images per round
 const IMAGE_ERRORS_THRESHOLD = 3; // Show next image after every 3 incorrect tries
 
 function getMaxTries(): number {
@@ -90,7 +89,7 @@ function showNextImage(appState: AppState) {
     // Update image number counter
     const imgCounter = document.getElementById('round-image-counter')
     if (imgCounter) {
-      imgCounter.textContent = `Image ${appState.roundImage} of ${appState.maxImages}`
+      imgCounter.textContent = `Image ${appState.roundImage} of ${MAX_IMAGES}`
     }
     // Next image logic
     const img = document.querySelector('.game img') as HTMLImageElement
@@ -105,7 +104,7 @@ function renderGameUI(appState: AppState) {
       
       <img src="/parties/${appState.currentImage}-${appState.roundImage}.png" alt="Random party" style="max-width: 500px; width: 100%; border-radius: 8px; " />
       
-      <p id="round-image-counter" style="text-align: center; margin:0; margin-bottom: 0; text-align: center; font-size: 12px;">Image ${appState.roundImage} of ${appState.maxImages}</p>
+      <p id="round-image-counter" style="text-align: center; margin:0; margin-bottom: 0; text-align: center; font-size: 12px;">Image ${appState.roundImage} of ${MAX_IMAGES}</p>
       <p id="tries-wrap" style="margin:0;margin-bottom:20px; font-size: 12px;"><span id="tries-used">0</span>/${getMaxTries()} tries used</p>
       <div id="guess-wrap">
         <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
@@ -174,6 +173,8 @@ function handleCorrectResponse(responseValue: string) {
 }
 
 function handleIncorrectResponse(responseValue: string, isCorrect: boolean = false) {
+  console.log( 'appState.roundInfo', appState.roundInfo);
+  
   gtag('event', 'handleIncorrectResponse', {
     event_category: 'Responses',
     event_label: appState.roundInfo['id'] || '',
@@ -184,7 +185,7 @@ function handleIncorrectResponse(responseValue: string, isCorrect: boolean = fal
   playErrorSound(appState.triesUsed, MAX_TRIES);
 
   // Show next image
-  if (appState.triesUsed % IMAGE_ERRORS_THRESHOLD === 0 && appState.roundImage < appState.maxImages) {
+  if (appState.triesUsed % IMAGE_ERRORS_THRESHOLD === 0 && appState.roundImage < MAX_IMAGES) {
     showNextImage(appState);
   }
   // If tries used exceeds max tries, end the game
@@ -322,6 +323,8 @@ function gameWinner(appState: AppState) {
   loadAndTriggerConfetti()
   playWinnerSound();
   savePlayedGameId(appState.currentImage);
+  console.log(`Game winner for image: ${appState.roundInfo}`);
+  
   gtag('event', 'gameWinner', {
     event_category: 'gameplay',
     event_label: appState.roundInfo['id'] || '', 
