@@ -155,7 +155,7 @@ function moreSoundsToFind(responseValue  : string): boolean {
 
 function handleCorrectResponse(responseValue: string) {
   if (isWinner()) {
-    gameWinner();
+    gameWinner(appState);
   } else if (moreSoundsToFind(responseValue)) {
     const hintMessage = getSoundHint(appState.roundInfo, appState.correctReponses);
     playCorrectSound();
@@ -189,7 +189,7 @@ function handleIncorrectResponse(responseValue: string, isCorrect: boolean = fal
   }
   // If tries used exceeds max tries, end the game
   if (appState.triesUsed >= MAX_TRIES) {
-    gameOver();
+    gameOver(appState);
     return;
   }
 
@@ -313,7 +313,7 @@ function getPartyDataHTML(roundInfo: any): string {
     .join('')
 }
 
-function gameWinner() {
+function gameWinner(appState: AppState) {
   // Game winner logic
   const gameDiv = document.querySelector('.game') as HTMLElement
   const youWin = document.getElementById('you-win') as HTMLElement
@@ -329,7 +329,7 @@ function gameWinner() {
   });
 }
 
-function gameOver() {
+function gameOver(appState: AppState) {
   // Game over logic
   const gameDiv = document.querySelector('.game') as HTMLElement;
   const tryAgain = document.getElementById('try-again') as HTMLButtonElement;
