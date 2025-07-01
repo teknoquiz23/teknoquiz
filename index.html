@@ -13,7 +13,11 @@
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-RYJT25NYW4"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
-    function gtag(){dataLayer.push(arguments);}
+    function gtag(){
+      dataLayer.push(arguments);
+      console.log('gtag called with arguments:', arguments);
+      
+    }
     gtag('js', new Date());
 
     gtag('config', 'G-RYJT25NYW4');
