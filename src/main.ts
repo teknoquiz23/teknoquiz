@@ -35,7 +35,7 @@ function displayYouWonAllGamesMessage() {
   const gameDiv = document.getElementById('app');
   if (gameDiv) gameDiv.style.display = 'none';
   if (youWonAllGamesEl) youWonAllGamesEl.style.display = 'block';
-  gtag('event', 'YouWonAllGamesMessage', {
+  gtag('event', 'WonAllGames', {
     event_category: 'gameplay',
     value: 1
   });
@@ -165,7 +165,7 @@ function handleCorrectResponse(responseValue: string) {
     displayHint('✅ That\'s correct!');
     updateResultsUI(appState);
   }
-  gtag('event', 'handleCorrectResponse', {
+  gtag('event', 'CorrectResponse', {
     event_category: 'Responses',
     event_label: appState.roundInfo['id'] || '',
     value: 1
@@ -174,7 +174,7 @@ function handleCorrectResponse(responseValue: string) {
 
 function handleIncorrectResponse(responseValue: string, isCorrect: boolean = false) {
   
-  gtag('event', 'handleIncorrectResponse', {
+  gtag('event', 'IncorrectResponse', {
     event_category: 'Responses',
     event_label: appState.roundInfo['id'] || '',
     value: 1
@@ -193,60 +193,62 @@ function handleIncorrectResponse(responseValue: string, isCorrect: boolean = fal
     return;
   }
 
-  // Handle numeric reponse
+  handleHint(responseValue, isCorrect);  
+}
+
+function handleHint(responseValue: string, isCorrect: boolean = false) {
+  
+  // If the response is a number
   if (!isNaN(Number(responseValue))) {
     const yearHint = getYearHint(appState, isCorrect, responseValue);
     displayHint(`${yearHint}`);
-      playHintSound();
-  } else {
-    // Handle text hint
-    handleTextHint();
+    playHintSound();
+    return
   }
-}
-
-function handleTextHint() {
-  const hintEl = document.getElementById('hint');
-  if (hintEl) hintEl.textContent = '';
-  if (isLastChance()) {
+  // If the response is last chance
+  else if (isLastChance()) {
     displayHint(getLastChanceHint(appState));
     playHintSound();
     return;
   }
-  let partyHint = '';
-  let soundHint = '';
-  let countryHint = '';
-  const partyHintThreshold = Math.floor(MAX_TRIES / 3);
-  const soundHintThreshold = Math.floor(MAX_TRIES / (appState.roundInfo['Party'] ? 2 : 3));
-  const countryHintThreshold = Math.floor((MAX_TRIES * 2) / 3);
+  // standard hint message
+  else {
+    let partyHint = '';
+    let soundHint = '';
+    let countryHint = '';
+    const partyHintThreshold = Math.floor(MAX_TRIES / 3);
+    const soundHintThreshold = Math.floor(MAX_TRIES / (appState.roundInfo['Party'] ? 2 : 3));
+    const countryHintThreshold = Math.floor((MAX_TRIES * 2) / 3);
 
-  if (
-    appState.triesUsed === partyHintThreshold &&
-    appState.roundInfo['Party'] &&
-    !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Party'))
-  ) {
-    partyHint = getPartyHint(appState.roundInfo);
-  }
-  if (
-    appState.triesUsed === soundHintThreshold &&
-    appState.roundInfo['Sound system'] &&
-    !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Sound system'))
-  ) {
-    soundHint = getSoundHint(appState.roundInfo, appState.correctReponses);
-  }
-  if (
-    appState.triesUsed === countryHintThreshold &&
-    appState.roundInfo['Country'] &&
-    !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Country'))
-  ) {
-    countryHint = getCountryHint(appState.roundInfo);
-  }
-  let hintMessage = '';
-  if (partyHint) hintMessage += `${partyHint} <br>`;
-  if (soundHint) hintMessage += `${soundHint} <br>`;
-  if (countryHint) hintMessage += `${countryHint}`;
-  if (hintMessage.trim()) {
-    displayHint(hintMessage.trim());
-    playHintSound();
+    if (
+      appState.triesUsed === partyHintThreshold &&
+      appState.roundInfo['Party'] &&
+      !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Party'))
+    ) {
+      partyHint = getPartyHint(appState.roundInfo);
+    }
+    if (
+      appState.triesUsed === soundHintThreshold &&
+      appState.roundInfo['Sound system'] &&
+      !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Sound system'))
+    ) {
+      soundHint = getSoundHint(appState.roundInfo, appState.correctReponses);
+    }
+    if (
+      appState.triesUsed === countryHintThreshold &&
+      appState.roundInfo['Country'] &&
+      !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Country'))
+    ) {
+      countryHint = getCountryHint(appState.roundInfo);
+    }
+    let hintMessage = '';
+    if (partyHint) hintMessage += `${partyHint} <br>`;
+    if (soundHint) hintMessage += `${soundHint} <br>`;
+    if (countryHint) hintMessage += `${countryHint}`;
+    if (hintMessage.trim()) {
+      displayHint(hintMessage.trim());
+      playHintSound();
+    }
   }
 }
 
@@ -280,7 +282,6 @@ document.getElementById('reset-all-btn')?.addEventListener('click', () => {
   localStorage.removeItem('playedGameIds')
   window.location.reload()
 })
-
 
 
 // Dynamically generate content based on roundInfo keys
