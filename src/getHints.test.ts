@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getCountryHint, getPartyHint, getSoundHint, getYearHint, getLastChanceHint } from './getHints';
+import { getYearHint, getLastChanceHint, getMaskedHint } from './getHints';
 
 // Sample roundInfo for tests
 const roundInfo = {
@@ -12,22 +12,22 @@ const roundInfo = {
 describe('Hint functions', () => {
  
   it('getCountryHint level 1', () => {
-    expect(getCountryHint(roundInfo)).toContain('SXXXX');
+    expect(getMaskedHint(roundInfo, 'Country', 1)).toContain('SXXXX');
   });
   it('getCountryHint level 2', () => {
-    expect(getCountryHint(roundInfo, 2)).toContain('SPXXX');
+    expect(getMaskedHint(roundInfo, 'Country', 2)).toContain('SPXXX');
   });
   it('getPartyHint level 1', () => {
-    expect(getPartyHint(roundInfo)).toContain('TEXXXXXX');
+    expect(getMaskedHint(roundInfo, 'Party', 1)).toContain('TEXXXXXX');
   });
   it('getPartyHint level 2', () => {
-    expect(getPartyHint(roundInfo, 2)).toContain('TEKXXXXX');
+    expect(getMaskedHint(roundInfo, 'Party', 2)).toContain('TEKXXXXX');
   });
   it('getSoundHint level 1', () => {
-    expect(getSoundHint(roundInfo, [], 1)).toContain('SXXXXX TXXXX');
+    expect(getMaskedHint(roundInfo, 'Sound system', 1)).toContain('SXXXXX TXXXX');
   });
   it('getSoundHint level 2', () => {
-    expect(getSoundHint(roundInfo, [], 2)).toContain('SPXXXX TRXXX');
+    expect(getMaskedHint(roundInfo, 'Sound system', 2)).toContain('SPXXXX TRXXX');
   });
   it('getYearHint level 1', () => {
     expect(getYearHint({ roundInfo, correctReponses: [] }, false, '1990', 1)).toContain('year');
