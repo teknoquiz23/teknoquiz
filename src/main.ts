@@ -2,7 +2,7 @@ declare function gtag(...args: any[]): void;
 import './style.css'
 import { loadAndTriggerConfetti } from './confetti'
 import { setupRoundInfo } from './setupRoundInfo';
-import { getYearHint, getLastChanceHint, getNextMultipleResponseHint, getMaskedHint } from './getHints'
+import { getYearHint, getLastChanceHint, getNextMultipleResponseHint, getSingleHint } from './getHints'
 import { updateResultsUI } from './updateResultsUi'
 import { playErrorSound, playWinnerSound, playHintSound, playCorrectSound } from './playSounds'
 import { parties } from './parties';
@@ -233,21 +233,21 @@ function handleHint(responseValue: string, isCorrect: boolean = false) {
       appState.roundInfo['Party'] &&
       !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Party'))
     ) {
-      partyHint = getMaskedHint(appState.roundInfo, 'Party', 1, appState.correctReponses);
+      partyHint = getSingleHint(appState.roundInfo, 'Party', 1, appState.correctReponses);
     }
     if (
       appState.triesUsed === soundHintThreshold &&
       appState.roundInfo['Sound system'] &&
       !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Sound system'))
     ) {
-      soundHint = getMaskedHint(appState.roundInfo, 'Sound system', 1, appState.correctReponses);
+      soundHint = getSingleHint(appState.roundInfo, 'Sound system', 1, appState.correctReponses);
     }
     if (
       appState.triesUsed === countryHintThreshold &&
       appState.roundInfo['Country'] &&
       !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Country'))
     ) {
-      countryHint = getMaskedHint(appState.roundInfo, 'Country', 1, appState.correctReponses);
+      countryHint = getSingleHint(appState.roundInfo, 'Country', 1, appState.correctReponses);
     }
     let hintMessage = '';
     if (partyHint) hintMessage += `${partyHint} <br>`;

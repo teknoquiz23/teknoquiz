@@ -86,11 +86,11 @@ export function getLastChanceHint(appState: any): string {
     }
   }
   else if (key === 'Party') {
-    hint = getMaskedHint(roundInfo, 'Party', 2, appState.correctReponses);
+    hint = getSingleHint(roundInfo, 'Party', 2, appState.correctReponses);
   // } else if (key === 'Sound system') {
   //   hint = getSoundHint(roundInfo, appState.correctReponses, 2);
   } else if (key === 'Country') {
-    hint = getMaskedHint(roundInfo, 'Country', 2, appState.correctReponses);
+    hint = getSingleHint(roundInfo, 'Country', 2, appState.correctReponses);
   } else if (key === 'Year') {
     hint = getYearHint(appState, false, String(roundInfo['Year']), 2);
   }
@@ -122,7 +122,7 @@ function maskHint(word: string, level: number, level1HintChars: number = 1, leve
   }
 }
 
-export function getMaskedHint(
+export function getSingleHint(
   roundInfo: { [key: string]: string | string[] },
   key: string,
   level: number = 1,
