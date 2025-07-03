@@ -206,6 +206,8 @@ function handleIncorrectResponse(responseValue: string, isCorrect: boolean = fal
 
 function handleHint(responseValue: string, isCorrect: boolean = false) {
   
+  const remainingKeys = getRemainingKeys(appState);
+  console.log('Remaining keys:', remainingKeys);
   // If the response is a number
   if (!isNaN(Number(responseValue))) {
     const yearHint = getYearHint(appState, isCorrect, responseValue);
@@ -214,8 +216,8 @@ function handleHint(responseValue: string, isCorrect: boolean = false) {
     return
   }
   // If the response is last chance
-  else if (isLastChance()) {
-    displayHint(getLastChanceHint(appState));
+  else if (isLastChance(remainingKeys)) {
+    displayHint(getLastChanceHint(appState, remainingKeys[0]));
     playHintSound();
     return;
   }
@@ -260,14 +262,19 @@ function handleHint(responseValue: string, isCorrect: boolean = false) {
   }
 }
 
-// Check if it's the last chance
-function isLastChance(): boolean {
+function getRemainingKeys(appState: AppState): string[] {
   const remainingKeys = Object.keys(appState.roundInfo).filter(key => {
     if (key === 'Sound system' && Array.isArray(appState.roundInfo[key])) {
       return appState.roundInfo[key].some((sound: string) => !appState.correctReponses.includes('Sound system:' + sound));
     }
     return !appState.correctReponses.includes(key);
   });
+  return remainingKeys;
+}
+
+// Check if it's the last chance
+function isLastChance(remainingKeys: string[]): boolean {
+
   return appState.triesUsed === MAX_TRIES - 1 && remainingKeys.length === 1;
 }
 

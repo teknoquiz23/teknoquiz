@@ -60,19 +60,8 @@ export function getNextMultipleResponseHint(roundInfo: { [key: string]: string |
     return '';
 }
 
-export function getLastChanceHint(appState: any): string {
+export function getLastChanceHint(appState: any, key: string): string {
   const roundInfo = appState.roundInfo;
-
-  const remainingKeys = Object.keys(roundInfo).filter(key => {
-    if (key === 'Sound system' && Array.isArray(roundInfo[key])) {
-      return roundInfo[key].some((sound: string) => !appState.correctReponses.includes('Sound system:' + sound));
-    }
-    return !appState.correctReponses.includes(key);
-  });
-
-  // If remainingKeys is empty, return empty string
-  if (remainingKeys.length !== 1) return '';
-  const key = remainingKeys[0];
 
   let hint = '';
 
@@ -85,14 +74,15 @@ export function getLastChanceHint(appState: any): string {
       hint = `🔍 Next ${nextItem.key}: ${maskedItem}`;
     }
   }
-  else if (key === 'Party') {
-    hint = getSingleHint(roundInfo, 'Party', 2, appState.correctReponses);
-  // } else if (key === 'Sound system') {
-  //   hint = getSoundHint(roundInfo, appState.correctReponses, 2);
-  } else if (key === 'Country') {
-    hint = getSingleHint(roundInfo, 'Country', 2, appState.correctReponses);
-  } else if (key === 'Year') {
-    hint = getYearHint(appState, false, String(roundInfo['Year']), 2);
+  else if (key === 'Year') {
+    // check if roundInfo's year is a number by using key var
+    const value = roundInfo[key];
+    if (isNumber(value)) {
+      hint = getYearHint(appState, false, String(value), 2);
+    }
+  }
+  else {
+    hint = getSingleHint(roundInfo, key, 2, appState.correctReponses);
   }
   return `<b>💎 LAST CHANCE!</b><br>${hint}`;
 }
@@ -146,4 +136,8 @@ export function getSingleHint(
     return `💡 ${key}: ${masked.join(' ')} (${words.length} word${words.length > 1 ? 's' : ''})`;
   }
   return '';
+}
+
+export function isNumber(value: any): boolean {
+  return typeof value === 'number' || (!isNaN(Number(value)) && value !== undefined && value !== null && value !== '');
 }

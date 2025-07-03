@@ -37,20 +37,20 @@ describe('Hint functions', () => {
   });
   it('getLastChanceHint for Party', () => {
     const appState = { roundInfo, correctReponses: ['Country', 'Sound system:Spiral Tribe', 'Sound system:Desert Storm', 'Year'] };
-    expect(getLastChanceHint(appState)).toContain('TEK');
+    expect(getLastChanceHint(appState, 'Party')).toContain('TEK');
   });
   it('getLastChanceHint for Country', () => {
     const appState = { roundInfo, correctReponses: ['Party', 'Sound system:Spiral Tribe', 'Sound system:Desert Storm', 'Year'] };
-    expect(getLastChanceHint(appState)).toContain('SP');
+    expect(getLastChanceHint(appState, 'Country')).toContain('SP');
   });
 
   it('getLastChanceHint for Year', () => {
     const appState = { roundInfo, correctReponses: ['Party', 'Country', 'Sound system:Spiral Tribe', 'Sound system:Desert Storm'] };
-    expect(getLastChanceHint(appState)).toContain('1XX6');
+    expect(getLastChanceHint(appState, 'Year')).toContain('1XX6');
   });
    it('getLastChanceHint for Sound system', () => {
     const appState = { roundInfo, correctReponses: ['Party', 'Country', 'Year', 'Sound system:Spiral Tribe'] };
-    const result = getLastChanceHint(appState);
+    const result = getLastChanceHint(appState, 'Sound system');
     expect(result).toContain('DEXXXX');
   });
   it('getNextUnansweredMultipleItem returns next unanswered sound system', () => {
