@@ -1,10 +1,4 @@
-function maskHint(word: string, level: number, level1HintChars: number = 1, level2HintChars: number = 2): string {
-  if (level === 2) {
-    return word.slice(0, level2HintChars).toUpperCase() + 'X'.repeat(word.length - level2HintChars);
-  } else {
-    return word.slice(0, level1HintChars).toUpperCase() + 'X'.repeat(word.length - level1HintChars);
-  }
-}
+
 
 export function getYearHintText(correctYear: number, yearResponse: number): string {
 
@@ -27,7 +21,7 @@ export function getYearHintText(correctYear: number, yearResponse: number): stri
 }
 
 export function getSoundHint(roundInfo: { [key: string]: string | string[] }, correctReponses?: string[], level: number = 1): string {
-   const soundVal = roundInfo['Sound system']
+  const soundVal = roundInfo['Sound system']
   const level1HintChars = 1;
   const level2HintChars = 2;
 
@@ -127,10 +121,10 @@ export function getYearHint(appState: { [key: string]: any }, isCorrect?: boolea
 }
 
 
-
+// Only executed if response was correct
 export function getNextMultipleResponseHint(roundInfo: { [key: string]: string | string[] }, correctReponses: string[]): string {
     
-    const nextItem = getNextUnansweredArrayItem(roundInfo, correctReponses);
+    const nextItem = getNextUnansweredMultipleItem(roundInfo, correctReponses);
     if (nextItem) {
       const { key, item } = nextItem;
       const maskedItem = maskHint(item, 1, 1, 2); // Level 1 hint
@@ -149,13 +143,26 @@ export function getLastChanceHint(appState: any): string {
     }
     return !appState.correctReponses.includes(key);
   });
+
+  // If remainingKeys is empty, return empty string
   if (remainingKeys.length !== 1) return '';
   const key = remainingKeys[0];
+
   let hint = '';
-  if (key === 'Party') {
+
+  if (isRemainingKeyInsideMultiple(roundInfo, key)) {
+    // If the key is an array, provide a hint for the next unanswered item
+    const nextItem = getNextUnansweredMultipleItem(roundInfo, appState.correctReponses);
+    if (nextItem) {
+      // mask the item for the hint
+      const maskedItem = maskHint(nextItem.item, 2); // Level 2 hint
+      hint = `🔍 Next ${nextItem.key}: ${maskedItem}`;
+    }
+  }
+  else if (key === 'Party') {
     hint = getPartyHint(roundInfo, 2);
-  } else if (key === 'Sound system') {
-    hint = getSoundHint(roundInfo, appState.correctReponses, 2);
+  // } else if (key === 'Sound system') {
+  //   hint = getSoundHint(roundInfo, appState.correctReponses, 2);
   } else if (key === 'Country') {
     hint = getCountryHint(roundInfo, 2);
   } else if (key === 'Year') {
@@ -164,7 +171,7 @@ export function getLastChanceHint(appState: any): string {
   return `<b>💎 LAST CHANCE!</b><br>${hint}`;
 }
 
-export function getNextUnansweredArrayItem(roundInfo: { [key: string]: string | string[] }, correctReponses: string[]): { key: string, item: string } | null {
+export function getNextUnansweredMultipleItem(roundInfo: { [key: string]: string | string[] }, correctReponses: string[]): { key: string, item: string } | null {
   for (const [key, value] of Object.entries(roundInfo)) {
     if (Array.isArray(value) && value.length > 1) {
       // Busca el primer item no respondido
@@ -175,4 +182,16 @@ export function getNextUnansweredArrayItem(roundInfo: { [key: string]: string | 
     }
   }
   return null;
+}
+
+export function isRemainingKeyInsideMultiple(roundInfo: { [key: string]: string | string[] }, key: string): boolean {
+  return Array.isArray(roundInfo[key]);
+}
+
+function maskHint(word: string, level: number, level1HintChars: number = 1, level2HintChars: number = 2): string {
+  if (level === 2) {
+    return word.slice(0, level2HintChars).toUpperCase() + 'X'.repeat(word.length - level2HintChars);
+  } else {
+    return word.slice(0, level1HintChars).toUpperCase() + 'X'.repeat(word.length - level1HintChars);
+  }
 }
