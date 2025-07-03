@@ -207,9 +207,9 @@ function handleIncorrectResponse(responseValue: string, isCorrect: boolean = fal
 function handleHint(responseValue: string, isCorrect: boolean = false) {
   
   const remainingKeys = getRemainingKeys(appState);
-  console.log('Remaining keys:', remainingKeys);
+
   // If the response is a number
-  if (!isNaN(Number(responseValue))) {
+  if (Number(responseValue)) {
     const yearHint = getYearHint(appState, isCorrect, responseValue);
     displayHint(`${yearHint}`);
     playHintSound();
