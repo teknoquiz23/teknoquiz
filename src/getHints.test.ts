@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getYearHint, getLastChanceHint, getMaskedHint } from './getHints';
+import { getYearHint, getLastChanceHint, getMaskedHint, getNextUnansweredMultipleItem } from './getHints';
 
 // Sample roundInfo for tests
 const roundInfo = {
@@ -52,6 +52,17 @@ describe('Hint functions', () => {
     const appState = { roundInfo, correctReponses: ['Party', 'Country', 'Year', 'Sound system:Spiral Tribe'] };
     const result = getLastChanceHint(appState);
     expect(result).toContain('DEXXXX');
+  });
+  it('getNextUnansweredMultipleItem returns next unanswered sound system', () => {
+    const roundInfo = {
+      'Country': 'Spain',
+      'Party': 'Teknival',
+      'Sound system': ['Spiral Tribe', 'Desert Storm', 'Total Resistance'],
+      'Year': '1996'
+    };
+    const correctReponses = ['Party', 'Country', 'Year', 'Sound system:Spiral Tribe'];
+    const result = getNextUnansweredMultipleItem(roundInfo, correctReponses);
+    expect(result).toEqual({ key: 'Sound system', item: 'Desert Storm' });
   });
   
 });
