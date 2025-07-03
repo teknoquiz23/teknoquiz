@@ -2,7 +2,7 @@ declare function gtag(...args: any[]): void;
 import './style.css'
 import { loadAndTriggerConfetti } from './confetti'
 import { setupRoundInfo } from './setupRoundInfo';
-import { getYearHint, getSoundHint, getCountryHint, getPartyHint, shouldShowNextSoundHint, getLastChanceHint } from './getHints'
+import { getYearHint, getSoundHint, getCountryHint, getPartyHint, getLastChanceHint, getNextMultipleResponseHint } from './getHints'
 import { updateResultsUI } from './updateResultsUi'
 import { playErrorSound, playWinnerSound, playHintSound, playCorrectSound } from './playSounds'
 import { parties } from './parties';
@@ -146,17 +146,25 @@ function handleResponse(responseValue: string) {
 
 
 
-function moreSoundsToFind(responseValue  : string): boolean {
-  // Logic for handling more sounds to find
-  const { isSoundSystem, moreToFind } = shouldShowNextSoundHint(appState.roundInfo, appState.correctReponses, responseValue);
-  return isSoundSystem && moreToFind;
+function isMultipleResponse (roundInfo: { [key: string]: string | string[] }, responseValue: string): boolean {
+  // Verifica si responseValue se encuentra dentro de algún array en roundInfo y que el array tenga más de un elemento
+  const normalized = (str: string) => str.trim().toLowerCase();
+  for (const value of Object.values(roundInfo)) {
+    if (Array.isArray(value) && value.length > 1) {
+      if (value.some(v => normalized(String(v)) === normalized(responseValue))) {
+        return true;
+      }
+    }
+  }
+  return false;
 }
+
 
 function handleCorrectResponse(responseValue: string) {
   if (isWinner()) {
     gameWinner(appState);
-  } else if (moreSoundsToFind(responseValue)) {
-    const hintMessage = getSoundHint(appState.roundInfo, appState.correctReponses);
+  } else if (isMultipleResponse(appState.roundInfo, responseValue)) {
+    const hintMessage = getNextMultipleResponseHint(appState.roundInfo, appState.correctReponses);
     playCorrectSound();
     displayHint(`✅ That\'s correct!<br>${hintMessage}`);
     updateResultsUI(appState);

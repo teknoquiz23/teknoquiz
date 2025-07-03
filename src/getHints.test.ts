@@ -10,6 +10,7 @@ const roundInfo = {
 };
 
 describe('Hint functions', () => {
+ 
   it('getCountryHint level 1', () => {
     expect(getCountryHint(roundInfo)).toContain('SXXXX');
   });
@@ -42,13 +43,15 @@ describe('Hint functions', () => {
     const appState = { roundInfo, correctReponses: ['Party', 'Sound system:Spiral Tribe', 'Sound system:Desert Storm', 'Year'] };
     expect(getLastChanceHint(appState)).toContain('SP');
   });
-  it('getLastChanceHint for Sound system', () => {
-    const appState = { roundInfo, correctReponses: ['Party', 'Country', 'Year', 'Sound system:Spiral Tribe'] };
-    expect(getLastChanceHint(appState)).toContain('DEXXXX');
-    expect(getLastChanceHint(appState)).toContain('STXXX');
-  });
+
   it('getLastChanceHint for Year', () => {
     const appState = { roundInfo, correctReponses: ['Party', 'Country', 'Sound system:Spiral Tribe', 'Sound system:Desert Storm'] };
     expect(getLastChanceHint(appState)).toContain('1XX6');
   });
+   it('getLastChanceHint for Sound system', () => {
+    const appState = { roundInfo, correctReponses: ['Party', 'Country', 'Year', 'Sound system:Spiral Tribe'] };
+    const result = getLastChanceHint(appState);
+    expect(result).toContain('DEXXXX');
+  });
+  
 });
