@@ -14,6 +14,7 @@ interface AppState {
   currentImage: string;
   roundInfo: { [key: string]: string | string[] };
   correctReponses: string[];
+  correctResObject: { [key: string]: string | string[] };
   roundImage: number;
 }
 
@@ -22,6 +23,7 @@ const appState: AppState = {
   currentImage: '',
   roundInfo: {},
   correctReponses: [],
+  correctResObject: {},
   roundImage: 1
 }
 
@@ -200,7 +202,6 @@ function handleIncorrectResponse(responseValue: string, isCorrect: boolean = fal
     gameOver(appState);
     return;
   }
-
   handleHint(responseValue, isCorrect);  
 }
 
@@ -208,19 +209,22 @@ function handleHint(responseValue: string, isCorrect: boolean = false) {
   
   const remainingKeys = getRemainingKeys(appState);
 
+
+  // If the response is last chance
+  if (isLastChance(remainingKeys)) {
+    displayHint(getLastChanceHint(appState, remainingKeys[0]));
+    playHintSound();
+    return;
+  }
+
   // If the response is a number
-  if (Number(responseValue)) {
+  else if (Number(responseValue)) {
     const yearHint = getYearHint(appState, isCorrect, responseValue);
     displayHint(`${yearHint}`);
     playHintSound();
     return
   }
-  // If the response is last chance
-  else if (isLastChance(remainingKeys)) {
-    displayHint(getLastChanceHint(appState, remainingKeys[0]));
-    playHintSound();
-    return;
-  }
+  
   // standard hint message
   else {
     let partyHint = '';
@@ -229,27 +233,33 @@ function handleHint(responseValue: string, isCorrect: boolean = false) {
     const partyHintThreshold = Math.floor(MAX_TRIES / 3);
     const soundHintThreshold = Math.floor(MAX_TRIES / (appState.roundInfo['Party'] ? 2 : 3));
     const countryHintThreshold = Math.floor((MAX_TRIES * 2) / 3);
+    
+    // TODO simplify logic
+    // get first roundInfo not in correctResObject
+    const firstUnansweredKey = getFirstUnansweredKey(appState.roundInfo, appState.correctResObject);
+    console.log('next unanswered key', firstUnansweredKey)
+
 
     if (
       appState.triesUsed === partyHintThreshold &&
       appState.roundInfo['Party'] &&
-      !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Party'))
+      !(Array.isArray(appState.correctResObject) && appState.correctResObject.includes('Party'))
     ) {
-      partyHint = getSingleHint(appState.roundInfo, 'Party', 1, appState.correctReponses);
+      partyHint = getSingleHint(appState.roundInfo, 'Party', 1, appState.correctResObject);
     }
     if (
       appState.triesUsed === soundHintThreshold &&
       appState.roundInfo['Sound system'] &&
-      !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Sound system'))
+      !(Array.isArray(appState.correctResObject) && appState.correctResObject.includes('Sound system'))
     ) {
-      soundHint = getSingleHint(appState.roundInfo, 'Sound system', 1, appState.correctReponses);
+      soundHint = getSingleHint(appState.roundInfo, 'Sound system', 1, appState.correctResObject);
     }
     if (
       appState.triesUsed === countryHintThreshold &&
       appState.roundInfo['Country'] &&
-      !(Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Country'))
+      !(Array.isArray(appState.correctResObject) && appState.correctResObject.includes('Country'))
     ) {
-      countryHint = getSingleHint(appState.roundInfo, 'Country', 1, appState.correctReponses);
+      countryHint = getSingleHint(appState.roundInfo, 'Country', 1, appState.correctResObject);
     }
     let hintMessage = '';
     if (partyHint) hintMessage += `${partyHint} <br>`;
@@ -262,13 +272,34 @@ function handleHint(responseValue: string, isCorrect: boolean = false) {
   }
 }
 
+// Get remaining keys that have not been answered
+// This function checks the appState.roundInfo and compares it with appState.correctResObject
+// It returns an array of keys that have not been answered yet
+// It also handles nested objects and arrays in the roundInfo
+
 function getRemainingKeys(appState: AppState): string[] {
-  const remainingKeys = Object.keys(appState.roundInfo).filter(key => {
-    if (key === 'Sound system' && Array.isArray(appState.roundInfo[key])) {
-      return appState.roundInfo[key].some((sound: string) => !appState.correctReponses.includes('Sound system:' + sound));
+  const normalize = (str: string) => str.toLowerCase().trim();
+
+  const findUnansweredKey = (key: string, value: string | string[] | object): boolean => {
+    if (Array.isArray(value)) {
+      return value.some(item => {
+        const normalizedItem = normalize(String(item));
+        const correctRes = appState.correctResObject[key];
+        return !correctRes || !Array.isArray(correctRes) || !(correctRes as string[]).map(normalize).includes(normalizedItem);
+      });
+    } else if (typeof value === 'object' && value !== null) {
+      return Object.entries(value).some(([nestedKey, nestedValue]) => findUnansweredKey(`${key}.${nestedKey}`, nestedValue));
     }
-    return !appState.correctReponses.includes(key);
+    const normalizedValue = normalize(String(value));
+    const correctRes = appState.correctResObject[key];
+    return !correctRes || normalize(String(correctRes)) !== normalizedValue;
+  };
+
+  const remainingKeys = Object.keys(appState.roundInfo).filter(key => {
+    const value = appState.roundInfo[key];
+    return findUnansweredKey(key, value);
   });
+  
   return remainingKeys;
 }
 
@@ -324,7 +355,6 @@ function gameWinner(appState: AppState) {
   loadAndTriggerConfetti()
   playWinnerSound();
   savePlayedGameId(appState.currentImage);
-  console.log(`Game winner for image: ${appState.roundInfo}`);
   
   gtag('event', 'gameWinner', {
     event_category: 'gameplay',
@@ -350,26 +380,77 @@ function gameOver(appState: AppState) {
   });
 }
 
+function saveCorrReponseObject(foundKey: string, inputValue: string) {
+  console.log('saveCorrReponseObject called with foundKey:', foundKey)
+  // Create or use the correctResObject from appState
+  const correctResObject: { [key: string]: string | string[] } = appState.correctResObject || {};
+  if (!correctResObject[foundKey]) {
+    correctResObject[foundKey] = inputValue;
+  } else {
+    // If already present, push new value(s) without overwriting
+    if (Array.isArray(correctResObject[foundKey])) {
+      if (!(correctResObject[foundKey] as string[]).includes(inputValue)) {
+        (correctResObject[foundKey] as string[]).push(inputValue);
+      }
+    } else if (correctResObject[foundKey] !== inputValue) {
+      correctResObject[foundKey] = [correctResObject[foundKey] as string, inputValue];
+    }
+  }
+  appState.correctResObject = correctResObject;
+  console.log('Adding correct response to object:', appState.correctResObject);
+}
+
+
+
 // Validate the response against the roundInfo
 function validateResponse(inputValue: string, infoObj: any): boolean {
-  // Normalize input for comparison
-  const normalize = (str: string) => str.toLowerCase().replace(/\s+/g, '');
-  const value = normalize(inputValue.trim());
-  if (!value) return false; // Prevent empty input from matching any value
+  // OLD piece of code
+    // Normalize input for comparison
+    const normalize = (str: string) => str.toLowerCase().replace(/\s+/g, '');
+    const value = normalize(inputValue.trim());
+    if (!value) return false; // Prevent empty input from matching any value
 
-  // Try to find a matching key in roundInfo
-  const foundKey = findMatchingKey(value, infoObj, normalize);
-  if (!foundKey) return false;
+    // Try to find a matching key in roundInfo
+    const foundKey = findMatchingKey(value, infoObj, normalize);
+    if (!foundKey) return false;
 
-  // Update correct responses if not already present
-  if (!Array.isArray(appState.correctReponses)) appState.correctReponses = [];
-  if (!appState.correctReponses.includes(foundKey)) {
-    appState.correctReponses.push(foundKey);
-  }
+
+
+    // Update correct responses if not already present
+    if (!Array.isArray(appState.correctReponses)) appState.correctReponses = [];
+    if (!appState.correctReponses.includes(foundKey)) {
+      console.log('Adding correct response:', foundKey);
+      appState.correctReponses.push(foundKey);
+    }
+  
+  // NEW fill the new correctResObject with the found key and input value
+  const key = getKeyForInputValue(inputValue, infoObj);
+  key && saveCorrReponseObject(key, inputValue);
+  
   return true;
 }
 
 // Find a matching key in the roundInfo object
+// NEW function, return just the key
+function getKeyForInputValue(inputValue: string, infoObj: { [key: string]: string | string[] }): string | null {
+  const normalize = (str: string) => str.toLowerCase().replace(/\s+/g, '');
+  const value = normalize(inputValue.trim());
+  for (const [key, v] of Object.entries(infoObj)) {
+    if (Array.isArray(v)) {
+      for (const item of v) {
+        if (normalize(String(item)) === value) {
+          return key;
+        }
+      }
+    } else if (normalize(String(v)) === value) {
+      return key;
+    }
+  }
+  return null;
+}
+
+// Find a matching key in the roundInfo object
+// OLD function, does not return just the key, but the key with the sound system if it is a sound system
 function findMatchingKey(value: string, infoObj: any, normalize: (str: string) => string): string | null {
   for (const [key, v] of Object.entries(infoObj)) {
     if (key === 'Sound system' && Array.isArray(v)) {
@@ -384,6 +465,7 @@ function findMatchingKey(value: string, infoObj: any, normalize: (str: string) =
   }
   return null;
 }
+
 
 function isWinner(): boolean {
   // For sound system, check if all sounds are already responded
@@ -436,3 +518,14 @@ function savePlayedGameId(id: string) {
     localStorage.setItem(key, JSON.stringify(ids));
   }
 }
+
+function getFirstUnansweredKey(roundInfo: { [key: string]: string | string[] }, correctResObject: { [key: string]: string | string[] }): string | undefined {
+  return Object.keys(roundInfo).find(key => {
+    const value = roundInfo[key];
+    if (Array.isArray(value)) {
+      return value.some(item => !correctResObject[key] || !Array.isArray(correctResObject[key]) || !(correctResObject[key] as string[]).includes(item));
+    }
+    return !correctResObject[key];
+  });
+}
+

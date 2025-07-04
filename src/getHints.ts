@@ -114,10 +114,10 @@ export function getSingleHint(
   roundInfo: { [key: string]: string | string[] },
   key: string,
   level: number = 1,
-  correctReponses?: string[]
+  correctResObject?: { [key: string]: string | string[] }
 ): string {
   // If the item is already guessed, return empty string
-  if (correctReponses && correctReponses.includes(key)) return '';
+  if (correctResObject && correctResObject[key]) return '';
 
   // Define hint levels
   let level1HintChars = 1;
