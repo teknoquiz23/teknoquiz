@@ -2,7 +2,6 @@ interface AppState {
   triesUsed: number;
   currentImage: string;
   roundInfo: { [key: string]: string | string[] };
-  correctReponses: string[];
   correctResObject: { [key: string]: string | string[] };
   roundImage: number;
 }

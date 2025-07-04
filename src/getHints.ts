@@ -2,7 +2,6 @@ interface AppState {
   triesUsed: number;
   currentImage: string;
   roundInfo: { [key: string]: string | string[] };
-  correctReponses: string[];
   correctResObject: { [key: string]: string | string[] };
   roundImage: number;
 }
@@ -32,7 +31,6 @@ export function getYearHintText(correctYear: number, yearResponse: number): stri
 
 export function getYearHint(appState: { [key: string]: any }, isCorrect?: boolean, responseValue?: string, level: number = 1): string {
   // If the year is already guessed, return empty string
-  if (appState.correctReponses && appState.correctReponses.includes('Year')) return '';
   if (
     typeof isCorrect === 'boolean' &&
     responseValue !== undefined &&

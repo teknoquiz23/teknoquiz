@@ -14,8 +14,6 @@ interface AppState {
   triesUsed: number;
   currentImage: string;
   roundInfo: { [key: string]: string | string[] };
-  // TODO stop using correctReponses
-  correctReponses: string[];
   correctResObject: { [key: string]: string | string[] };
   roundImage: number;
 }
@@ -24,7 +22,6 @@ const appState: AppState = {
   triesUsed: 0,
   currentImage: '',
   roundInfo: {},
-  correctReponses: [],
   correctResObject: {},
   roundImage: 1
 }
@@ -140,7 +137,6 @@ function handleResponse(responseValue: string) {
   deleteHint()
   if (!responseValue || !appState.roundInfo) return
   const isCorrect = validateAndSaveResponse(responseValue, appState);
-  console.log('Response value:', responseValue, 'isCorrect:', isCorrect);
   if (isCorrect) {
     handleCorrectResponse(responseValue);
   } else {
@@ -218,7 +214,7 @@ function handleHint(responseValue: string, isCorrect: boolean = false) {
     return;
   }
   // If the response is a number
-  else if (Number(responseValue)) {
+  else if (Number(responseValue)) { // TODO, check if is a valid year
     console.log(responseValue, 'is a number');
     const yearHint = getYearHint(appState, isCorrect, responseValue);
     displayHint(`${yearHint}`);
@@ -351,14 +347,16 @@ function gameOver(appState: AppState) {
 }
 
 
-
-
-
 function isWinner(): boolean {
-  console.log('remaining items length', getRemainingItems(appState).length);
-  // TO BE FIXED const remainingItems = getRemainingItems(appState);
-  
-  return false
+
+  const remainingItems = getRemainingItems(appState);
+  // Check if object is empty
+  for (const prop in remainingItems) {
+    if (Object.hasOwn(remainingItems, prop)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function displayHint(hintMessage: string) {
