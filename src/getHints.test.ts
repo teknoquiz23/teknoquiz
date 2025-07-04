@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getLastChanceHint, getNewHint, maskHint } from './getHints';
+import { getLastChanceHint, getNewHint, maskHint, getRemainingItems } from './getHints';
 
 // Sample roundInfo for tests
 const roundInfo = {
@@ -106,5 +106,83 @@ describe('getNewHint', () => {
     };
     const result = getNewHint(appState, 1);
     expect(result).toBe('No more hints available');
+  });
+});
+
+describe('getRemainingItems', () => {
+  it('should return all items if nothing is resolved', () => {
+    const appState = {
+      roundInfo: {
+        Party: 'Teknival',
+        Country: 'Spain',
+        'Sound system': ['Spiral Tribe', 'Desert Storm'],
+        Year: '1996'
+      },
+      correctResObject: {}
+    } as any;;
+    expect(getRemainingItems(appState)).toEqual({
+      Party: ['Teknival'],
+      Country: ['Spain'],
+      'Sound system': ['Spiral Tribe', 'Desert Storm'],
+      Year: ['1996']
+    });
+  });
+
+  it('should return only unresolved items', () => {
+    const appState = {
+      roundInfo: {
+        Party: 'Teknival',
+        Country: 'Spain',
+        'Sound system': ['Spiral Tribe', 'Desert Storm'],
+        Year: '1996'
+      },
+      correctResObject: {
+        Party: 'Teknival',
+        'Sound system': ['Spiral Tribe']
+      }
+    } as any;;
+    expect(getRemainingItems(appState)).toEqual({
+      Country: ['Spain'],
+      'Sound system': ['Desert Storm'],
+      Year: ['1996']
+    });
+  });
+
+  it('should return empty object if all are resolved', () => {
+    const appState = {
+      roundInfo: {
+        Party: 'Teknival',
+        Country: 'Spain',
+        'Sound system': ['Spiral Tribe', 'Desert Storm'],
+        Year: '1996'
+      },
+      correctResObject: {
+        Party: 'Teknival',
+        Country: 'Spain',
+        'Sound system': ['Spiral Tribe', 'Desert Storm'],
+        Year: '1996'
+      }
+    } as any; // <-- Add "as any" to avoid type issues
+    expect(getRemainingItems(appState)).toEqual({});
+  });
+
+  it('should be case and whitespace insensitive', () => {
+    const appState = {
+      roundInfo: {
+        Party: 'Teknival',
+        Country: 'Spain',
+        'Sound system': ['Spiral Tribe', 'Desert Storm'],
+        Year: '1996'
+      },
+      correctResObject: {
+        Party: '  teknival ',
+        Country: ' spain ',
+        'Sound system': [' spiral tribe '],
+        Year: ' 1996 '
+      }
+    } as any; // <-- Add "as any" to avoid type issues;
+    expect(getRemainingItems(appState)).toEqual({
+      'Sound system': ['Desert Storm']
+    });
   });
 });

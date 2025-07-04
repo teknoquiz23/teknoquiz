@@ -347,8 +347,7 @@ function gameOver(appState: AppState) {
 }
 
 
-function isWinner(): boolean {
-
+export function isWinner(): boolean {
   const remainingItems = getRemainingItems(appState);
   // Check if object is empty
   for (const prop in remainingItems) {
