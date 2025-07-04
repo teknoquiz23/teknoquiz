@@ -1,3 +1,5 @@
+// TODO refactor so we don't depend on hardcoded 'Sound system'
+
 export function updateResultsUI(appState: any) {
   console.log('updateResultsUI', appState);
   if (!appState.roundInfo) return;

@@ -46,7 +46,6 @@ const playedIds = getPlayedGameIds();
 const unplayedParties = parties.filter(p => !playedIds.includes(p.id));
 
 if (unplayedParties.length === 0) {
-  // Show the "you won all games" message and do not call setupRoundInfo
   displayYouWonAllGamesMessage();
 } else {
   setupRoundInfo(appState);
