@@ -75,8 +75,12 @@ function maskHint(word: string, level: number, level1HintChars: number = 1, leve
 
 
 export function getNewHint(appState: AppState, level: number = 1): string{
+
   // TODO if is year, use getYearhint
+  // TODO remaining items does not work for multiple items
   const remainingItems = getRemainingItems(appState);
+  console.log('getNewHint remainingItems', remainingItems)
+
   const firstKey = Object.keys(remainingItems)[0];
   if (firstKey) {
     // Define hint levels
@@ -86,13 +90,18 @@ export function getNewHint(appState: AppState, level: number = 1): string{
       level1HintChars = 2;
       level2HintChars = 3;
     }
-    const firstValue = remainingItems[firstKey];
+
+    const firstValue = remainingItems[firstKey][0]; // Use only the first array item
+    console.log('getNewHint firstValue', firstValue);
+
     const maskedHint = firstValue
-      .flatMap(value => value.split(/\s+/)) // Split by spaces
+      .split(/\s+/) // Split by spaces
       .map(word => maskHint(word, level, level1HintChars, level2HintChars))
       .join(' ');
+
     return `💡 ${firstKey}: ${maskedHint}`;
   }
+
   return 'No more hints available';
 }
 
@@ -105,35 +114,44 @@ export function isNumber(value: any): boolean {
 // This function checks the appState.roundInfo and compares it with appState.correctResObject
 // It returns an array of keys that have not been answered yet
 // It also handles nested objects and arrays in the roundInfo
+// make sure to normalize the strings for comparison
 
 export function getRemainingItems(appState: AppState): { [key: string]: string[] } {
   const normalize = (str: string) => str.toLowerCase().trim();
+  const { roundInfo, correctResObject } = appState;
 
-  const findUnansweredValues = (key: string, value: string | string[] | object): string[] => {
+  // Step 1: Copy roundInfo into filtered (deep copy for arrays)
+  const filtered: { [key: string]: string[] } = {};
+  Object.keys(roundInfo).forEach(key => {
+    const value = roundInfo[key];
     if (Array.isArray(value)) {
-      return value.filter(item => {
-        const normalizedItem = normalize(String(item));
-        const correctRes = appState.correctResObject[key];
-        return !correctRes || !Array.isArray(correctRes) || !(correctRes as string[]).map(normalize).includes(normalizedItem);
-      });
-    } else if (typeof value === 'object' && value !== null) {
-      return Object.entries(value)
-        .flatMap(([nestedKey, nestedValue]) => findUnansweredValues(`${key}.${nestedKey}`, nestedValue));
+      filtered[key] = [...value];
     } else {
-      const normalizedValue = normalize(String(value));
-      const correctRes = appState.correctResObject[key];
-      return !correctRes || normalize(String(correctRes)) !== normalizedValue ? [String(value)] : [];
-    }
-  };
-
-  const remainingItems: { [key: string]: string[] } = {};
-  Object.keys(appState.roundInfo).forEach(key => {
-    const value = appState.roundInfo[key];
-    const unansweredValues = findUnansweredValues(key, value);
-    if (unansweredValues.length > 0) {
-      remainingItems[key] = unansweredValues;
+      filtered[key] = [value as string];
     }
   });
 
-  return remainingItems;
+  // Step 2: Delete every value that you can find in correctResObject
+  Object.keys(filtered).forEach(key => {
+    const correctValue = correctResObject[key];
+    if (Array.isArray(filtered[key])) {
+      if (Array.isArray(correctValue)) {
+        // Remove values present in correctResObject (normalize for comparison)
+        filtered[key] = filtered[key].filter(
+          v => !correctValue.map(x => normalize(String(x))).includes(normalize(String(v)))
+        );
+      } else if (typeof correctValue === 'string') {
+        filtered[key] = filtered[key].filter(
+          v => normalize(String(v)) !== normalize(correctValue)
+        );
+      }
+    }
+    // Remove key if nothing left
+    if (filtered[key].length === 0) {
+      delete filtered[key];
+    }
+  });
+  console.log('getRemainingItems filtered', filtered);
+
+  return filtered;
 }

@@ -353,7 +353,6 @@ function gameOver(appState: AppState) {
 }
 
 function saveCorrReponseObject(foundKey: string, inputValue: string) {
-  console.log('saveCorrReponseObject called with foundKey:', foundKey)
   // Create or use the correctResObject from appState
   const correctResObject: { [key: string]: string | string[] } = appState.correctResObject || {};
   if (!correctResObject[foundKey]) {
@@ -369,7 +368,6 @@ function saveCorrReponseObject(foundKey: string, inputValue: string) {
     }
   }
   appState.correctResObject = correctResObject;
-  console.log('Adding correct response to object:', appState.correctResObject);
 }
 
 
@@ -391,7 +389,6 @@ function validateResponse(inputValue: string, infoObj: any): boolean {
     // Update correct responses if not already present
     if (!Array.isArray(appState.correctReponses)) appState.correctReponses = [];
     if (!appState.correctReponses.includes(foundKey)) {
-      console.log('Adding correct response:', foundKey);
       appState.correctReponses.push(foundKey);
     }
   

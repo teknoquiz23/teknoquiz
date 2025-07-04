@@ -64,5 +64,17 @@ describe('Hint functions', () => {
   //   const result = getNextUnansweredMultipleItem(roundInfo, correctReponses);
   //   expect(result).toEqual({ key: 'Sound system', item: 'Desert Storm' });
   // });
+  it('getNewHint returns masked hint for first unresolved key', () => {
+    const appState = {
+      roundInfo,
+      correctReponses: [],
+      correctResObject: {},
+      triesUsed: 0,
+      currentImage: '',
+      roundImage: 1
+    };
+    const result = getNewHint(appState, 1);
+    expect(result).toContain('💡 Country: SXXXX');
+  });
   
 });
