@@ -17,7 +17,7 @@ export const parties = [
   {
     id: "34g3h535h3h",
     "Sound system": "Sound Confundent",
-    Country: "Spain"
+    Country: "Spain",
   },
   {
     id: "325c23rc23",
