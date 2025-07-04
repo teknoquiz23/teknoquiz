@@ -468,26 +468,9 @@ function findMatchingKey(value: string, infoObj: any, normalize: (str: string) =
 
 
 function isWinner(): boolean {
-  // For sound system, check if all sounds are already responded
-  if (
-    appState.roundInfo['Sound system'] &&
-    Array.isArray(appState.roundInfo['Sound system']) &&
-    appState.roundInfo['Sound system'].length > 1
-  ) {
-    const allResponded = appState.roundInfo['Sound system'].every(sound =>
-      appState.correctReponses.includes('Sound system:' + sound)
-    );
-    const allOther = Object.keys(appState.roundInfo)
-      .filter(k => k !== 'Sound system')
-      .every(k => appState.correctReponses.includes(k));
-    return allResponded && allOther;
-  } else if (
-    appState.roundInfo &&
-    appState.correctReponses.length === Object.keys(appState.roundInfo).length
-  ) {
-    return true;
-  }
-  return false;
+  console.log('remaining keys length', getRemainingKeys(appState).length);
+  const remainingKeys = getRemainingKeys(appState);
+  return remainingKeys.length === 0;
 }
 
 function displayHint(hintMessage: string) {
