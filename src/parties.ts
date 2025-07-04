@@ -1,6 +1,5 @@
 // List of party details
 export const parties = [
-
   {
     id: "a32d23c32c",
     Party: "Dragon festival",
@@ -37,14 +36,9 @@ export const parties = [
     Year: "2005"
   },
   {
-    id: "21412532523",
-    Party: "Space travel",
-    Country: "Italy"
-  },
-  {
     id: "2f2ef23f23",
     Party: "Vendetta",
-    "Sound system": ["Oxyde", "Trakkas"],
+    "Sound systems": ["Oxyde", "Trakkas"],
     Country: "Italy",
   }
 ]

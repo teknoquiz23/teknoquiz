@@ -300,13 +300,9 @@ function generateRoundHTML(roundInfo: any): string {
   if (!roundInfo) return ''
   return Object.keys(roundInfo)
     .map(key => {
-      if (key === 'Sound system') {
-        const sounds = Array.isArray(roundInfo[key]) ? roundInfo[key] : [roundInfo[key]] 
-        const label = sounds.length > 1 ? `Sound systems (${sounds.length}):` : 'Sound system:'
-        return `<div><b>${label}</b> <span class="result-sound-system"></span></div>`
-      } else {
-        return `<div><b>${key}:</b> <span class="result-${key.toLowerCase().replace(/\s+/g, '-')}"></span></div>`
-      }
+      const values = Array.isArray(roundInfo[key]) ? roundInfo[key] : [roundInfo[key]];
+      const label = values.length > 1 ? `${key} (${values.length}):` : `${key}:`;
+      return `<div><b>${label}</b> <span class="result-${key.toLowerCase().replace(/\s+/g, '-')}" ></span></div>`;
     })
     .join('')
 }
