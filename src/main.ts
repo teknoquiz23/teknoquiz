@@ -139,6 +139,7 @@ function handleResponse(responseValue: string) {
   deleteHint()
   if (!responseValue || !appState.roundInfo) return
   const isCorrect = validateResponse(responseValue, appState.roundInfo);
+  console.log('Response value:', responseValue, 'isCorrect:', isCorrect);
   if (isCorrect) {
     handleCorrectResponse(responseValue);
   } else {
@@ -217,6 +218,7 @@ function handleHint(responseValue: string, isCorrect: boolean = false) {
   }
   // If the response is a number
   else if (Number(responseValue)) {
+    console.log(responseValue, 'is a number');
     const yearHint = getYearHint(appState, isCorrect, responseValue);
     displayHint(`${yearHint}`);
     playHintSound();
@@ -368,29 +370,41 @@ function saveCorrReponseObject(foundKey: string, inputValue: string) {
 
 
 // Validate the response against the roundInfo
-function validateResponse(inputValue: string, infoObj: any): boolean {
-  const key = getKeyForInputValue(inputValue, infoObj);
+function validateResponse(inputValue: string, roundInfo: any): boolean {
+  const key = getKeyForInputValue(inputValue, roundInfo);
   key && saveCorrReponseObject(key, inputValue);
+  if (!key) {
+    return false;
+  }
   return true;
 }
 
+function normalize(str:string): string {
+  return String(str)
+    .toLowerCase()
+    .trim();
+}
+
 // Find a matching key in the roundInfo object
-// NEW function, return just the key
-function getKeyForInputValue(inputValue: string, infoObj: { [key: string]: string | string[] }): string | null {
-  const normalize = (str: string) => str.toLowerCase().replace(/\s+/g, '');
-  const value = normalize(inputValue.trim());
-  for (const [key, v] of Object.entries(infoObj)) {
-    if (Array.isArray(v)) {
-      for (const item of v) {
-        if (normalize(String(item)) === value) {
+function getKeyForInputValue(inputValue: string, roundInfo: { [key: string]: string | string[] }): string | null {
+  const normalizedInput = normalize(inputValue);
+
+  for (const [key, value] of Object.entries(roundInfo)) {
+    console.log('Checking key:', key, 'with value:', value, 'for input:', inputValue);
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        if (normalize(item) === normalizedInput) { 
           return key;
         }
       }
-    } else if (normalize(String(v)) === value) {
-      return key;
+    } else {
+      if (normalize(value) === normalizedInput) {
+        return key;
+      }
     }
   }
-  return null;
+
+  return null; 
 }
 
 

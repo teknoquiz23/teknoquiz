@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getYearHint, getLastChanceHint, getNewHint, maskHint } from './getHints';
+import { getLastChanceHint, getNewHint, maskHint } from './getHints';
 
 // Sample roundInfo for tests
 const roundInfo = {
