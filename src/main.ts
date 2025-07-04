@@ -4,6 +4,7 @@ import { loadAndTriggerConfetti } from './confetti'
 import { setupRoundInfo } from './setupRoundInfo';
 import { getYearHint, getLastChanceHint, getNewHint, getRemainingItems } from './getHints'
 import { updateResultsUI } from './updateResultsUi'
+import { validateAndSaveResponse } from './validateAndSave'
 import { playErrorSound, playWinnerSound, playHintSound, playCorrectSound } from './playSounds'
 import { parties } from './parties';
 
@@ -138,7 +139,7 @@ function handleResponse(responseValue: string) {
   // Clear all hint messages first
   deleteHint()
   if (!responseValue || !appState.roundInfo) return
-  const isCorrect = validateResponse(responseValue, appState.roundInfo);
+  const isCorrect = validateAndSaveResponse(responseValue, appState);
   console.log('Response value:', responseValue, 'isCorrect:', isCorrect);
   if (isCorrect) {
     handleCorrectResponse(responseValue);
@@ -349,63 +350,8 @@ function gameOver(appState: AppState) {
   });
 }
 
-function saveCorrReponseObject(foundKey: string, inputValue: string) {
-  // Create or use the correctResObject from appState
-  const correctResObject: { [key: string]: string | string[] } = appState.correctResObject || {};
-  if (!correctResObject[foundKey]) {
-    correctResObject[foundKey] = inputValue;
-  } else {
-    // If already present, push new value(s) without overwriting
-    if (Array.isArray(correctResObject[foundKey])) {
-      if (!(correctResObject[foundKey] as string[]).includes(inputValue)) {
-        (correctResObject[foundKey] as string[]).push(inputValue);
-      }
-    } else if (correctResObject[foundKey] !== inputValue) {
-      correctResObject[foundKey] = [correctResObject[foundKey] as string, inputValue];
-    }
-  }
-  appState.correctResObject = correctResObject;
-}
 
 
-
-// Validate the response against the roundInfo
-function validateResponse(inputValue: string, roundInfo: any): boolean {
-  const key = getKeyForInputValue(inputValue, roundInfo);
-  key && saveCorrReponseObject(key, inputValue);
-  if (!key) {
-    return false;
-  }
-  return true;
-}
-
-function normalize(str:string): string {
-  return String(str)
-    .toLowerCase()
-    .trim();
-}
-
-// Find a matching key in the roundInfo object
-function getKeyForInputValue(inputValue: string, roundInfo: { [key: string]: string | string[] }): string | null {
-  const normalizedInput = normalize(inputValue);
-
-  for (const [key, value] of Object.entries(roundInfo)) {
-    console.log('Checking key:', key, 'with value:', value, 'for input:', inputValue);
-    if (Array.isArray(value)) {
-      for (const item of value) {
-        if (normalize(item) === normalizedInput) { 
-          return key;
-        }
-      }
-    } else {
-      if (normalize(value) === normalizedInput) {
-        return key;
-      }
-    }
-  }
-
-  return null; 
-}
 
 
 function isWinner(): boolean {
