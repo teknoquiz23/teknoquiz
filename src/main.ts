@@ -13,6 +13,7 @@ interface AppState {
   triesUsed: number;
   currentImage: string;
   roundInfo: { [key: string]: string | string[] };
+  // TODO stop using correctReponses
   correctReponses: string[];
   correctResObject: { [key: string]: string | string[] };
   roundImage: number;
@@ -206,18 +207,14 @@ function handleIncorrectResponse(responseValue: string, isCorrect: boolean = fal
 }
 
 function handleHint(responseValue: string, isCorrect: boolean = false) {
-  
+
   const remainingItems = getRemainingItems(appState);
-
-
   // If the response is last chance
   if (isLastChance(remainingItems)) {
-
     displayHint(getLastChanceHint(appState));
     playHintSound();
     return;
   }
-
   // If the response is a number
   else if (Number(responseValue)) {
     const yearHint = getYearHint(appState, isCorrect, responseValue);
@@ -225,7 +222,6 @@ function handleHint(responseValue: string, isCorrect: boolean = false) {
     playHintSound();
     return
   }
-  
   // standard hint message
   else {
     let partyHint = '';
@@ -277,7 +273,6 @@ function handleHint(responseValue: string, isCorrect: boolean = false) {
 
 // Check if it's the last chance
 function isLastChance(remainingItems: { [key: string]: string[] }): boolean {
-
   return appState.triesUsed === MAX_TRIES - 1 && Object.keys(remainingItems).length === 1;
 }
 
@@ -374,28 +369,8 @@ function saveCorrReponseObject(foundKey: string, inputValue: string) {
 
 // Validate the response against the roundInfo
 function validateResponse(inputValue: string, infoObj: any): boolean {
-  // OLD piece of code
-    // Normalize input for comparison
-    const normalize = (str: string) => str.toLowerCase().replace(/\s+/g, '');
-    const value = normalize(inputValue.trim());
-    if (!value) return false; // Prevent empty input from matching any value
-
-    // Try to find a matching key in roundInfo
-    const foundKey = findMatchingKey(value, infoObj, normalize);
-    if (!foundKey) return false;
-
-
-
-    // Update correct responses if not already present
-    if (!Array.isArray(appState.correctReponses)) appState.correctReponses = [];
-    if (!appState.correctReponses.includes(foundKey)) {
-      appState.correctReponses.push(foundKey);
-    }
-  
-  // NEW fill the new correctResObject with the found key and input value
   const key = getKeyForInputValue(inputValue, infoObj);
   key && saveCorrReponseObject(key, inputValue);
-  
   return true;
 }
 
@@ -409,23 +384,6 @@ function getKeyForInputValue(inputValue: string, infoObj: { [key: string]: strin
       for (const item of v) {
         if (normalize(String(item)) === value) {
           return key;
-        }
-      }
-    } else if (normalize(String(v)) === value) {
-      return key;
-    }
-  }
-  return null;
-}
-
-// Find a matching key in the roundInfo object
-// OLD function, does not return just the key, but the key with the sound system if it is a sound system
-function findMatchingKey(value: string, infoObj: any, normalize: (str: string) => string): string | null {
-  for (const [key, v] of Object.entries(infoObj)) {
-    if (key === 'Sound system' && Array.isArray(v)) {
-      for (const sound of v) {
-        if (normalize(String(sound)) === value) {
-          return key + ':' + sound; // unique key for each sound
         }
       }
     } else if (normalize(String(v)) === value) {

@@ -65,7 +65,7 @@ export function getLastChanceHint(appState: AppState): string {
 
 
 
-function maskHint(word: string, level: number, level1HintChars: number = 1, level2HintChars: number = 2): string {
+export function maskHint(word: string, level: number, level1HintChars: number = 1, level2HintChars: number = 2): string {
   if (level === 2) {
     return word.slice(0, level2HintChars).toUpperCase() + 'X'.repeat(word.length - level2HintChars);
   } else {
@@ -77,7 +77,6 @@ function maskHint(word: string, level: number, level1HintChars: number = 1, leve
 export function getNewHint(appState: AppState, level: number = 1): string{
 
   // TODO if is year, use getYearhint
-  // TODO remaining items does not work for multiple items
   const remainingItems = getRemainingItems(appState);
   console.log('getNewHint remainingItems', remainingItems)
 
