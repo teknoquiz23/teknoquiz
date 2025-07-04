@@ -1,3 +1,14 @@
+interface AppState {
+  triesUsed: number;
+  currentImage: string;
+  roundInfo: { [key: string]: string | string[] };
+  correctReponses: string[];
+  correctResObject: { [key: string]: string | string[] };
+  roundImage: number;
+}
+
+
+
 export function getYearHintText(correctYear: number, yearResponse: number): string {
 
   const diff = Math.abs(correctYear - yearResponse)
@@ -46,61 +57,13 @@ export function getYearHint(appState: { [key: string]: any }, isCorrect?: boolea
 }
 
 
-// Only executed if response was correct
-export function getNextMultipleResponseHint(roundInfo: { [key: string]: string | string[] }, correctReponses: string[]): string {
-    
-    const nextItem = getNextUnansweredMultipleItem(roundInfo, correctReponses);
-    if (nextItem) {
-      const { key, item } = nextItem;
-      const maskedItem = maskHint(item, 1, 1, 2); // Level 1 hint
-      const hint = `🔍 Next ${key}: ${maskedItem}`;
-      return hint;
-    }
-    return '';
+
+export function getLastChanceHint(appState: AppState): string {
+  const hint = getNewHint(appState, 2);
+  return `<b>💎 LAST CHANCE!</b> ${hint}`;
 }
 
-export function getLastChanceHint(appState: any, key: string): string {
-  const roundInfo = appState.roundInfo;
 
-  let hint = '';
-  if (isRemainingKeyInsideMultiple(roundInfo, key)) {
-    // If the key is an array, provide a hint for the next unanswered item
-    const nextItem = getNextUnansweredMultipleItem(roundInfo, appState.correctReponses);
-    if (nextItem) {
-      // mask the item for the hint
-      const maskedItem = maskHint(nextItem.item, 2); // Level 2 hint
-      hint = `🔍 Next ${nextItem.key}: ${maskedItem}`;
-    }
-  }
-  else if (key === 'Year') {
-    // check if roundInfo's year is a number by using key var
-    const value = roundInfo[key];
-    if (isNumber(value)) {
-      hint = getYearHint(appState, false, String(value), 2);
-    }
-  }
-  else {
-    hint = getSingleHint(roundInfo, key, 2, appState.correctReponses);
-  }
-  return `<b>💎 LAST CHANCE!</b><br>${hint}`;
-}
-
-export function getNextUnansweredMultipleItem(roundInfo: { [key: string]: string | string[] }, correctReponses: string[]): { key: string, item: string } | null {
-  for (const [key, value] of Object.entries(roundInfo)) {
-    if (Array.isArray(value) && value.length > 1) {
-      // Busca el primer item no respondido
-      const unanswered = value.find(item => !correctReponses.includes(`${key}:${item}`));
-      if (unanswered) {
-        return { key, item: unanswered };
-      }
-    }
-  }
-  return null;
-}
-
-export function isRemainingKeyInsideMultiple(roundInfo: { [key: string]: string | string[] }, key: string): boolean {
-  return Array.isArray(roundInfo[key]);
-}
 
 function maskHint(word: string, level: number, level1HintChars: number = 1, level2HintChars: number = 2): string {
   if (level === 2) {
@@ -110,32 +73,67 @@ function maskHint(word: string, level: number, level1HintChars: number = 1, leve
   }
 }
 
-export function getSingleHint(
-  roundInfo: { [key: string]: string | string[] },
-  key: string,
-  level: number = 1,
-  correctResObject?: { [key: string]: string | string[] }
-): string {
-  // If the item is already guessed, return empty string
-  if (correctResObject && correctResObject[key]) return '';
 
-  // Define hint levels
-  let level1HintChars = 1;
-  let level2HintChars = 2;
-  if (key === 'Party') {
-    level1HintChars = 2;
-    level2HintChars = 3;
+export function getNewHint(appState: AppState, level: number = 1): string{
+  // TODO if is year, use getYearhint
+  const remainingItems = getRemainingItems(appState);
+  const firstKey = Object.keys(remainingItems)[0];
+  if (firstKey) {
+    // Define hint levels
+    let level1HintChars = 1;
+    let level2HintChars = 2;
+    if (firstKey === 'Party') {
+      level1HintChars = 2;
+      level2HintChars = 3;
+    }
+    const firstValue = remainingItems[firstKey];
+    const maskedHint = firstValue
+      .flatMap(value => value.split(/\s+/)) // Split by spaces
+      .map(word => maskHint(word, level, level1HintChars, level2HintChars))
+      .join(' ');
+    return `💡 ${firstKey}: ${maskedHint}`;
   }
-  const value = roundInfo[key];
-  const item = Array.isArray(value) ? value[0] : value;
-  if (item && item.length > 0) {
-    const words = item.trim().split(/\s+/);
-    const masked = words.map(word => maskHint(word, level, level1HintChars, level2HintChars));
-    return `💡 ${key}: ${masked.join(' ')} (${words.length} word${words.length > 1 ? 's' : ''})`;
-  }
-  return '';
+  return 'No more hints available';
 }
 
 export function isNumber(value: any): boolean {
   return typeof value === 'number' || (!isNaN(Number(value)) && value !== undefined && value !== null && value !== '');
+}
+
+
+// Get remaining items that have not been answered
+// This function checks the appState.roundInfo and compares it with appState.correctResObject
+// It returns an array of keys that have not been answered yet
+// It also handles nested objects and arrays in the roundInfo
+
+export function getRemainingItems(appState: AppState): { [key: string]: string[] } {
+  const normalize = (str: string) => str.toLowerCase().trim();
+
+  const findUnansweredValues = (key: string, value: string | string[] | object): string[] => {
+    if (Array.isArray(value)) {
+      return value.filter(item => {
+        const normalizedItem = normalize(String(item));
+        const correctRes = appState.correctResObject[key];
+        return !correctRes || !Array.isArray(correctRes) || !(correctRes as string[]).map(normalize).includes(normalizedItem);
+      });
+    } else if (typeof value === 'object' && value !== null) {
+      return Object.entries(value)
+        .flatMap(([nestedKey, nestedValue]) => findUnansweredValues(`${key}.${nestedKey}`, nestedValue));
+    } else {
+      const normalizedValue = normalize(String(value));
+      const correctRes = appState.correctResObject[key];
+      return !correctRes || normalize(String(correctRes)) !== normalizedValue ? [String(value)] : [];
+    }
+  };
+
+  const remainingItems: { [key: string]: string[] } = {};
+  Object.keys(appState.roundInfo).forEach(key => {
+    const value = appState.roundInfo[key];
+    const unansweredValues = findUnansweredValues(key, value);
+    if (unansweredValues.length > 0) {
+      remainingItems[key] = unansweredValues;
+    }
+  });
+
+  return remainingItems;
 }

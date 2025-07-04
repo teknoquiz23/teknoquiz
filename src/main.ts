@@ -2,7 +2,7 @@ declare function gtag(...args: any[]): void;
 import './style.css'
 import { loadAndTriggerConfetti } from './confetti'
 import { setupRoundInfo } from './setupRoundInfo';
-import { getYearHint, getLastChanceHint, getNextMultipleResponseHint, getSingleHint } from './getHints'
+import { getYearHint, getLastChanceHint, getNewHint, getRemainingItems } from './getHints'
 import { updateResultsUI } from './updateResultsUi'
 import { playErrorSound, playWinnerSound, playHintSound, playCorrectSound } from './playSounds'
 import { parties } from './parties';
@@ -166,7 +166,7 @@ function handleCorrectResponse(responseValue: string) {
   if (isWinner()) {
     gameWinner(appState);
   } else if (isMultipleResponse(appState.roundInfo, responseValue)) {
-    const hintMessage = getNextMultipleResponseHint(appState.roundInfo, appState.correctReponses);
+    const hintMessage = getNewHint(appState, 1);
     playCorrectSound();
     displayHint(`✅ That\'s correct!<br>${hintMessage}`);
     updateResultsUI(appState);
@@ -207,12 +207,13 @@ function handleIncorrectResponse(responseValue: string, isCorrect: boolean = fal
 
 function handleHint(responseValue: string, isCorrect: boolean = false) {
   
-  const remainingKeys = getRemainingKeys(appState);
+  const remainingItems = getRemainingItems(appState);
 
 
   // If the response is last chance
-  if (isLastChance(remainingKeys)) {
-    displayHint(getLastChanceHint(appState, remainingKeys[0]));
+  if (isLastChance(remainingItems)) {
+
+    displayHint(getLastChanceHint(appState));
     playHintSound();
     return;
   }
@@ -245,21 +246,21 @@ function handleHint(responseValue: string, isCorrect: boolean = false) {
       appState.roundInfo['Party'] &&
       !(Array.isArray(appState.correctResObject) && appState.correctResObject.includes('Party'))
     ) {
-      partyHint = getSingleHint(appState.roundInfo, 'Party', 1, appState.correctResObject);
+      partyHint = getNewHint(appState, 1);
     }
     if (
       appState.triesUsed === soundHintThreshold &&
       appState.roundInfo['Sound system'] &&
       !(Array.isArray(appState.correctResObject) && appState.correctResObject.includes('Sound system'))
     ) {
-      soundHint = getSingleHint(appState.roundInfo, 'Sound system', 1, appState.correctResObject);
+      soundHint = getNewHint(appState, 1);
     }
     if (
       appState.triesUsed === countryHintThreshold &&
       appState.roundInfo['Country'] &&
       !(Array.isArray(appState.correctResObject) && appState.correctResObject.includes('Country'))
     ) {
-      countryHint = getSingleHint(appState.roundInfo, 'Country', 1, appState.correctResObject);
+      countryHint = getNewHint(appState, 1);
     }
     let hintMessage = '';
     if (partyHint) hintMessage += `${partyHint} <br>`;
@@ -272,41 +273,12 @@ function handleHint(responseValue: string, isCorrect: boolean = false) {
   }
 }
 
-// Get remaining keys that have not been answered
-// This function checks the appState.roundInfo and compares it with appState.correctResObject
-// It returns an array of keys that have not been answered yet
-// It also handles nested objects and arrays in the roundInfo
 
-function getRemainingKeys(appState: AppState): string[] {
-  const normalize = (str: string) => str.toLowerCase().trim();
-
-  const findUnansweredKey = (key: string, value: string | string[] | object): boolean => {
-    if (Array.isArray(value)) {
-      return value.some(item => {
-        const normalizedItem = normalize(String(item));
-        const correctRes = appState.correctResObject[key];
-        return !correctRes || !Array.isArray(correctRes) || !(correctRes as string[]).map(normalize).includes(normalizedItem);
-      });
-    } else if (typeof value === 'object' && value !== null) {
-      return Object.entries(value).some(([nestedKey, nestedValue]) => findUnansweredKey(`${key}.${nestedKey}`, nestedValue));
-    }
-    const normalizedValue = normalize(String(value));
-    const correctRes = appState.correctResObject[key];
-    return !correctRes || normalize(String(correctRes)) !== normalizedValue;
-  };
-
-  const remainingKeys = Object.keys(appState.roundInfo).filter(key => {
-    const value = appState.roundInfo[key];
-    return findUnansweredKey(key, value);
-  });
-  
-  return remainingKeys;
-}
 
 // Check if it's the last chance
-function isLastChance(remainingKeys: string[]): boolean {
+function isLastChance(remainingItems: { [key: string]: string[] }): boolean {
 
-  return appState.triesUsed === MAX_TRIES - 1 && remainingKeys.length === 1;
+  return appState.triesUsed === MAX_TRIES - 1 && Object.keys(remainingItems).length === 1;
 }
 
 // Update event listeners
@@ -468,9 +440,10 @@ function findMatchingKey(value: string, infoObj: any, normalize: (str: string) =
 
 
 function isWinner(): boolean {
-  console.log('remaining keys length', getRemainingKeys(appState).length);
-  const remainingKeys = getRemainingKeys(appState);
-  return remainingKeys.length === 0;
+  console.log('remaining items length', getRemainingItems(appState).length);
+  // TO BE FIXED const remainingItems = getRemainingItems(appState);
+  
+  return false
 }
 
 function displayHint(hintMessage: string) {
