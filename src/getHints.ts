@@ -72,12 +72,11 @@ export function maskHint(word: string, level: number, level1HintChars: number = 
 }
 
 
-export function getNewHint(appState: AppState, level: number = 1): string{
 
+// OLD function deprecate and use getHint
+export function getNewHint(appState: AppState, level: number = 1): string{
   // TODO if is year, use getYearhint
   const remainingItems = getRemainingItems(appState);
-  console.log('getNewHint remainingItems', remainingItems)
-
   const firstKey = Object.keys(remainingItems)[0];
   if (firstKey) {
     // Define hint levels
@@ -89,7 +88,7 @@ export function getNewHint(appState: AppState, level: number = 1): string{
     }
 
     const firstValue = remainingItems[firstKey][0]; // Use only the first array item
-    console.log('getNewHint firstValue', firstValue);
+    // console.log('getNewHint firstValue', firstValue);
 
     const maskedHint = firstValue
       .split(/\s+/) // Split by spaces
@@ -101,6 +100,32 @@ export function getNewHint(appState: AppState, level: number = 1): string{
 
   return 'No more hints available';
 }
+
+export function getHint(appState: AppState, level: number = 1, MAX_TRIES: number): string {
+  const hintPosition = getHintPosition(appState, MAX_TRIES) // Get the hint position based on tries used and max tries
+  const itemToHint = getHintItemByPosition(hintPosition, appState) // Get the hint item by position
+
+    let hintKey: string | undefined;
+    if (itemToHint) {
+      hintKey = Object.keys(itemToHint)[0];
+    } else {
+      return '';
+    }
+    if (!hintKey) {
+      console.error('No hint key found for the itemToHint:', itemToHint);
+      return '';
+    }
+    const hintValue = itemToHint[hintKey];
+
+    const maskedHint = hintValue
+          .split(/\s+/) // Split by spaces
+          .map(word => maskHint(word, level))
+          .join(' ');
+  
+    const hintMessage = `💡 ${hintKey}: ${maskedHint}`;
+    return hintMessage;
+}
+
 
 export function isNumber(value: any): boolean {
   return typeof value === 'number' || (!isNaN(Number(value)) && value !== undefined && value !== null && value !== '');
@@ -148,7 +173,52 @@ export function getRemainingItems(appState: AppState): { [key: string]: string[]
       delete filtered[key];
     }
   });
-  console.log('getRemainingItems filtered', filtered);
+  // console.log('getRemainingItems filtered', filtered);
 
   return filtered;
+}
+
+
+export function getHintItemByPosition(position: number, appState: AppState): { [key: string]: string } | undefined {
+  const remaining = getRemainingItems(appState);
+  // Flatten in the order of keys as in roundInfo, and values as in the array
+  const flat: { key: string, value: string }[] = [];
+  Object.keys(appState.roundInfo).forEach(key => {
+    if (remaining[key]) {
+      remaining[key].forEach(value => flat.push({ key, value }));
+    }
+  });
+  const item = flat[position - 1];
+  if (!item) return undefined;
+  return { [item.key]: item.value };
+}
+
+function getHintThreshold(appState: AppState, maxTries: number): number {
+  // Count all items (including array values)
+  const numItems = Object.values(appState.roundInfo).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
+  const hintThreshold = Math.ceil(maxTries / numItems);
+  return hintThreshold;
+}
+
+export function getHintPosition(appState: AppState, maxTries: number): number {
+  const hintThreshold = getHintThreshold(appState, maxTries);
+  const hintPosition = Math.floor(appState.triesUsed / hintThreshold) + 1
+  return hintPosition; // Not a hint try
+}
+
+export function shouldDisplayHint(appState: AppState, maxTries: number): boolean {
+  
+  const triesUsed = appState.triesUsed;
+  const numItems = Object.values(appState.roundInfo).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
+
+  // Calculate hint steps
+  const hintSteps = [];
+  for (let i = 1; i <= numItems; i++) {
+    const step = Math.round((i * maxTries) / (numItems + 1));
+    if (step > 1 && step < maxTries) {
+      hintSteps.push(step);
+    }
+  }
+
+  return hintSteps.includes(triesUsed);
 }

@@ -2,7 +2,7 @@ declare function gtag(...args: any[]): void;
 import './style.css'
 import { loadAndTriggerConfetti } from './confetti'
 import { setupRoundInfo } from './setupRoundInfo';
-import { getYearHint, getLastChanceHint, getNewHint, getRemainingItems } from './getHints'
+import { getYearHint, getLastChanceHint, getNewHint, getRemainingItems, getHint, shouldDisplayHint } from './getHints'
 import { updateResultsUI } from './updateResultsUi'
 import { validateAndSaveResponse } from './validateAndSave'
 import { playErrorSound, playWinnerSound, playHintSound, playCorrectSound } from './playSounds'
@@ -56,9 +56,10 @@ const MAX_IMAGES = 3; // Maximum number of images per round
 const IMAGE_ERRORS_THRESHOLD = 3; // Show next image after every 3 incorrect tries
 
 function getMaxTries(): number {
-  // Calculate max tries based on the number of items in roundInfo
-  const numItems = Object.keys(appState.roundInfo).length;
-  return Math.max(10, numItems * 3); // Ensure at least 10 tries
+  // Calculate max tries based on the number of items in roundInfo, counting each array element
+  const numItems = Object.values(appState.roundInfo).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
+  const maxTries = Math.max(10, numItems * 3); // Ensure at least 10 tries
+  return maxTries;
 }
 
 function shakeText(element: HTMLElement) {
@@ -204,7 +205,6 @@ function handleIncorrectResponse(responseValue: string, isCorrect: boolean = fal
 }
 
 function handleHint(responseValue: string, isCorrect: boolean = false) {
-
   const remainingItems = getRemainingItems(appState);
   // If the response is last chance
   if (isLastChance(remainingItems)) {
@@ -219,51 +219,10 @@ function handleHint(responseValue: string, isCorrect: boolean = false) {
     displayHint(`${yearHint}`);
     playHintSound();
     return
-  }
-  // standard hint message
-  else {
-    let partyHint = '';
-    let soundHint = '';
-    let countryHint = '';
-    const partyHintThreshold = Math.floor(MAX_TRIES / 3);
-    const soundHintThreshold = Math.floor(MAX_TRIES / (appState.roundInfo['Party'] ? 2 : 3));
-    const countryHintThreshold = Math.floor((MAX_TRIES * 2) / 3);
-    
-    // TODO simplify logic
-    // get first roundInfo not in correctResObject
-    const firstUnansweredKey = getFirstUnansweredKey(appState.roundInfo, appState.correctResObject);
-    console.log('next unanswered key', firstUnansweredKey)
-
-
-    if (
-      appState.triesUsed === partyHintThreshold &&
-      appState.roundInfo['Party'] &&
-      !(Array.isArray(appState.correctResObject) && appState.correctResObject.includes('Party'))
-    ) {
-      partyHint = getNewHint(appState, 1);
-    }
-    if (
-      appState.triesUsed === soundHintThreshold &&
-      appState.roundInfo['Sound system'] &&
-      !(Array.isArray(appState.correctResObject) && appState.correctResObject.includes('Sound system'))
-    ) {
-      soundHint = getNewHint(appState, 1);
-    }
-    if (
-      appState.triesUsed === countryHintThreshold &&
-      appState.roundInfo['Country'] &&
-      !(Array.isArray(appState.correctResObject) && appState.correctResObject.includes('Country'))
-    ) {
-      countryHint = getNewHint(appState, 1);
-    }
-    let hintMessage = '';
-    if (partyHint) hintMessage += `${partyHint} <br>`;
-    if (soundHint) hintMessage += `${soundHint} <br>`;
-    if (countryHint) hintMessage += `${countryHint}`;
-    if (hintMessage.trim()) {
-      displayHint(hintMessage.trim());
-      playHintSound();
-    }
+  } else if (shouldDisplayHint(appState, MAX_TRIES)) {
+    const hintMessage = getHint(appState, 1, MAX_TRIES);
+    displayHint(hintMessage.trim());
+    playHintSound();
   }
 }
 
@@ -382,13 +341,13 @@ function savePlayedGameId(id: string) {
   }
 }
 
-function getFirstUnansweredKey(roundInfo: { [key: string]: string | string[] }, correctResObject: { [key: string]: string | string[] }): string | undefined {
-  return Object.keys(roundInfo).find(key => {
-    const value = roundInfo[key];
-    if (Array.isArray(value)) {
-      return value.some(item => !correctResObject[key] || !Array.isArray(correctResObject[key]) || !(correctResObject[key] as string[]).includes(item));
-    }
-    return !correctResObject[key];
-  });
-}
+// function getFirstUnansweredKey(roundInfo: { [key: string]: string | string[] }, correctResObject: { [key: string]: string | string[] }): string | undefined {
+//   return Object.keys(roundInfo).find(key => {
+//     const value = roundInfo[key];
+//     if (Array.isArray(value)) {
+//       return value.some(item => !correctResObject[key] || !Array.isArray(correctResObject[key]) || !(correctResObject[key] as string[]).includes(item));
+//     }
+//     return !correctResObject[key];
+//   });
+// }
 

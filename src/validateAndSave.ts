@@ -48,7 +48,7 @@ export function getKeyForInputValue(inputValue: string, roundInfo: { [key: strin
   const normalizedInput = normalize(inputValue);
 
   for (const [key, value] of Object.entries(roundInfo)) {
-    console.log('Checking key:', key, 'with value:', value, 'for input:', inputValue);
+    // console.log('Checking key:', key, 'with value:', value, 'for input:', inputValue);
     if (Array.isArray(value)) {
       for (const item of value) {
         if (normalize(item) === normalizedInput) { 
