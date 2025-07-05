@@ -1,3 +1,13 @@
+interface AppState {
+  triesUsed: number;
+  currentImage: string;
+  roundInfo: { [key: string]: string | string[] };
+  correctResObject: { [key: string]: string | string[] };
+  roundImage: number;
+}
+
+
+
 export function getYearHintText(correctYear: number, yearResponse: number): string {
 
   const diff = Math.abs(correctYear - yearResponse)
@@ -20,9 +30,7 @@ export function getYearHintText(correctYear: number, yearResponse: number): stri
 
 
 export function getYearHint(appState: { [key: string]: any }, isCorrect?: boolean, responseValue?: string, level: number = 1): string {
-
   // If the year is already guessed, return empty string
-  if (appState.correctReponses && appState.correctReponses.includes('Year')) return '';
   if (
     typeof isCorrect === 'boolean' &&
     responseValue !== undefined &&
@@ -47,74 +55,15 @@ export function getYearHint(appState: { [key: string]: any }, isCorrect?: boolea
 }
 
 
-// Only executed if response was correct
-export function getNextMultipleResponseHint(roundInfo: { [key: string]: string | string[] }, correctReponses: string[]): string {
-    
-    const nextItem = getNextUnansweredMultipleItem(roundInfo, correctReponses);
-    if (nextItem) {
-      const { key, item } = nextItem;
-      const maskedItem = maskHint(item, 1, 1, 2); // Level 1 hint
-      const hint = `🔍 Next ${key}: ${maskedItem}`;
-      return hint;
-    }
-    return '';
+
+export function getLastChanceHint(appState: AppState): string {
+  const hint = getNewHint(appState, 2);
+  return `<b>💎 LAST CHANCE!</b> ${hint}`;
 }
 
-export function getLastChanceHint(appState: any): string {
-  const roundInfo = appState.roundInfo;
 
-  const remainingKeys = Object.keys(roundInfo).filter(key => {
-    if (key === 'Sound system' && Array.isArray(roundInfo[key])) {
-      return roundInfo[key].some((sound: string) => !appState.correctReponses.includes('Sound system:' + sound));
-    }
-    return !appState.correctReponses.includes(key);
-  });
 
-  // If remainingKeys is empty, return empty string
-  if (remainingKeys.length !== 1) return '';
-  const key = remainingKeys[0];
-
-  let hint = '';
-
-  if (isRemainingKeyInsideMultiple(roundInfo, key)) {
-    // If the key is an array, provide a hint for the next unanswered item
-    const nextItem = getNextUnansweredMultipleItem(roundInfo, appState.correctReponses);
-    if (nextItem) {
-      // mask the item for the hint
-      const maskedItem = maskHint(nextItem.item, 2); // Level 2 hint
-      hint = `🔍 Next ${nextItem.key}: ${maskedItem}`;
-    }
-  }
-  else if (key === 'Party') {
-    hint = getMaskedHint(roundInfo, 'Party', 2, appState.correctReponses);
-  // } else if (key === 'Sound system') {
-  //   hint = getSoundHint(roundInfo, appState.correctReponses, 2);
-  } else if (key === 'Country') {
-    hint = getMaskedHint(roundInfo, 'Country', 2, appState.correctReponses);
-  } else if (key === 'Year') {
-    hint = getYearHint(appState, false, String(roundInfo['Year']), 2);
-  }
-  return `<b>💎 LAST CHANCE!</b><br>${hint}`;
-}
-
-export function getNextUnansweredMultipleItem(roundInfo: { [key: string]: string | string[] }, correctReponses: string[]): { key: string, item: string } | null {
-  for (const [key, value] of Object.entries(roundInfo)) {
-    if (Array.isArray(value) && value.length > 1) {
-      // Busca el primer item no respondido
-      const unanswered = value.find(item => !correctReponses.includes(`${key}:${item}`));
-      if (unanswered) {
-        return { key, item: unanswered };
-      }
-    }
-  }
-  return null;
-}
-
-export function isRemainingKeyInsideMultiple(roundInfo: { [key: string]: string | string[] }, key: string): boolean {
-  return Array.isArray(roundInfo[key]);
-}
-
-function maskHint(word: string, level: number, level1HintChars: number = 1, level2HintChars: number = 2): string {
+export function maskHint(word: string, level: number, level1HintChars: number = 1, level2HintChars: number = 2): string {
   if (level === 2) {
     return word.slice(0, level2HintChars).toUpperCase() + 'X'.repeat(word.length - level2HintChars);
   } else {
@@ -122,28 +71,84 @@ function maskHint(word: string, level: number, level1HintChars: number = 1, leve
   }
 }
 
-export function getMaskedHint(
-  roundInfo: { [key: string]: string | string[] },
-  key: string,
-  level: number = 1,
-  correctReponses?: string[]
-): string {
-  // If the item is already guessed, return empty string
-  if (correctReponses && correctReponses.includes(key)) return '';
 
-  // Define hint levels
-  let level1HintChars = 1;
-  let level2HintChars = 2;
-  if (key === 'Party') {
-    level1HintChars = 2;
-    level2HintChars = 3;
+export function getNewHint(appState: AppState, level: number = 1): string{
+
+  // TODO if is year, use getYearhint
+  const remainingItems = getRemainingItems(appState);
+  console.log('getNewHint remainingItems', remainingItems)
+
+  const firstKey = Object.keys(remainingItems)[0];
+  if (firstKey) {
+    // Define hint levels
+    let level1HintChars = 1;
+    let level2HintChars = 2;
+    if (firstKey === 'Party') {
+      level1HintChars = 2;
+      level2HintChars = 3;
+    }
+
+    const firstValue = remainingItems[firstKey][0]; // Use only the first array item
+    console.log('getNewHint firstValue', firstValue);
+
+    const maskedHint = firstValue
+      .split(/\s+/) // Split by spaces
+      .map(word => maskHint(word, level, level1HintChars, level2HintChars))
+      .join(' ');
+
+    return `💡 ${firstKey}: ${maskedHint}`;
   }
-  const value = roundInfo[key];
-  const item = Array.isArray(value) ? value[0] : value;
-  if (item && item.length > 0) {
-    const words = item.trim().split(/\s+/);
-    const masked = words.map(word => maskHint(word, level, level1HintChars, level2HintChars));
-    return `💡 ${key}: ${masked.join(' ')} (${words.length} word${words.length > 1 ? 's' : ''})`;
-  }
-  return '';
+
+  return 'No more hints available';
+}
+
+export function isNumber(value: any): boolean {
+  return typeof value === 'number' || (!isNaN(Number(value)) && value !== undefined && value !== null && value !== '');
+}
+
+
+// Get remaining items that have not been answered
+// This function checks the appState.roundInfo and compares it with appState.correctResObject
+// It returns an array of keys that have not been answered yet
+// It also handles nested objects and arrays in the roundInfo
+// make sure to normalize the strings for comparison
+
+export function getRemainingItems(appState: AppState): { [key: string]: string[] } {
+  const normalize = (str: string) => str.toLowerCase().trim();
+  const { roundInfo, correctResObject } = appState;
+
+  // Step 1: Copy roundInfo into filtered (deep copy for arrays)
+  const filtered: { [key: string]: string[] } = {};
+  Object.keys(roundInfo).forEach(key => {
+    const value = roundInfo[key];
+    if (Array.isArray(value)) {
+      filtered[key] = [...value];
+    } else {
+      filtered[key] = [value as string];
+    }
+  });
+
+  // Step 2: Delete every value that you can find in correctResObject
+  Object.keys(filtered).forEach(key => {
+    const correctValue = correctResObject[key];
+    if (Array.isArray(filtered[key])) {
+      if (Array.isArray(correctValue)) {
+        // Remove values present in correctResObject (normalize for comparison)
+        filtered[key] = filtered[key].filter(
+          v => !correctValue.map(x => normalize(String(x))).includes(normalize(String(v)))
+        );
+      } else if (typeof correctValue === 'string') {
+        filtered[key] = filtered[key].filter(
+          v => normalize(String(v)) !== normalize(correctValue)
+        );
+      }
+    }
+    // Remove key if nothing left
+    if (filtered[key].length === 0) {
+      delete filtered[key];
+    }
+  });
+  console.log('getRemainingItems filtered', filtered);
+
+  return filtered;
 }

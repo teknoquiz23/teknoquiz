@@ -1,34 +1,25 @@
+// TODO refactor so we don't depend on hardcoded 'Sound system'
+
 export function updateResultsUI(appState: any) {
-  if (!appState.roundInfo) return;
-  updateSoundSystemResults(appState);
-  updateOtherResults(appState);
-}
-
-function updateSoundSystemResults(appState: any) {
-  const soundSystems = appState.roundInfo['Sound system'];
-  if (!soundSystems) return;
-  const selector = `.result-sound-system`;
-  const el = document.querySelector(selector);
-  if (!el) return;
-  const sounds = Array.isArray(soundSystems) ? soundSystems : [soundSystems];
-  el.textContent = sounds
-    .map(sound =>
-      Array.isArray(appState.correctReponses) && appState.correctReponses.includes('Sound system:' + sound)
-        ? `✅ ${sound}`
-        : ''
-    )
-    .join(' ');
-}
-
-function updateOtherResults(appState: any) {
-  if (!Array.isArray(appState.correctReponses)) return;
-  appState.correctReponses.forEach((key: string) => {
-    if (key.startsWith('Sound system:')) return; // Already handled
+  if (!appState.roundInfo || !appState.correctResObject) return;
+  Object.keys(appState.correctResObject).forEach((key: string) => {
     const selector = getResultSelector(key);
     const el = document.querySelector(selector);
-    if (el) el.textContent = `✅ ${appState.roundInfo[key]}`;
+    if (!el) return;
+    const correctValues = Array.isArray(appState.correctResObject[key])
+      ? appState.correctResObject[key].map((v: string) => v.toLowerCase().trim())
+      : [String(appState.correctResObject[key]).toLowerCase().trim()];
+    const roundValues = appState.roundInfo[key];
+    const values = Array.isArray(roundValues) ? roundValues : [roundValues];
+    el.textContent = values
+      .map((val: string) =>
+        correctValues.includes(String(val).toLowerCase().trim()) ? `✅ ${val}` : ''
+      )
+      .join(' ');
   });
 }
+
+
 
 function getResultSelector(key: string): string {
   return `.result-${key.toLowerCase().replace(/\s+/g, '-')}`;
