@@ -101,6 +101,10 @@ function renderGameUI(appState: AppState) {
       
       <p id="round-image-counter" style="text-align: center; margin:0; margin-bottom: 0; text-align: center; font-size: 12px;">Image ${appState.roundImage} of ${MAX_IMAGES}</p>
       <p id="tries-wrap" style="margin:0;margin-bottom:20px; font-size: 12px;"><span id="tries-used">0</span>/${appState.maxTries} tries used</p>
+      <div class="progress-bar">
+        <span>${appState.triesUsed} / ${appState.maxTries}</span>
+      </div>
+      
       <div id="guess-wrap">
         <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
           <input id="guess-input" type="text" placeholder="Guess party name, sound system, year or country" style="padding: 0.5em; font-size: 1em;" />
@@ -344,4 +348,5 @@ function savePlayedGameId(id: string) {
 //     return !correctResObject[key];
 //   });
 // }
+
 
