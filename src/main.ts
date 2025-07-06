@@ -84,9 +84,9 @@ export function increaseTriesUsed() {
     if (triesEl) {
       triesEl.textContent = `${appState.triesUsed}`;
     }
-    const triesWrap = document.getElementById('tries-wrap');
-    if (triesWrap) {
-      shakeText(triesWrap);
+    const triesUsedText = document.getElementById('tries-used-text');
+    if (triesUsedText) {
+      shakeText(triesUsedText);
     }
 }
 
@@ -112,7 +112,7 @@ function renderGameUI(appState: AppState) {
       <br>
       <p id="round-image-counter" style="text-align: center; margin:0; margin-bottom: 20px; text-align: center; font-size: 12px;">Image ${appState.roundImage} of ${MAX_IMAGES}</p>
       <div id="progress-bar-tries" class="progress-bar">
-        <span class="progress-bar-text">Tries used: <b><span id="tries-used">0</span> / ${appState.maxTries}</b></span>
+        <span id="tries-used-text" class="progress-bar-text">Tries used: <b><span id="tries-used">0</span> / ${appState.maxTries}</b></span>
         <span class="progress-bar-fill tries" style="width:0"></span>
       </div>
       <div id="progress-bar-responses" class="progress-bar">
@@ -120,13 +120,12 @@ function renderGameUI(appState: AppState) {
         <span class="progress-bar-fill responses" style="width:0"></span>
       </div>
       <div id="guess-wrap">
-        <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; margin-top: 20px;">
-          <input id="guess-input" type="text" placeholder="Guess party name, sound system, year or country" style="padding: 0.5em; font-size: 1em;" />
-          <button id="guess-btn" type="button">Go</button>
+        <div>
+          <input id="guess-input" class="guess-input" type="text" placeholder="Guess party name, sound system, year or country" />
+          <button id="guess-btn" class="guess-btn" type="button">Go</button>
         </div>
-          
       </div>
-      <div id="hints-wrap" style="margin:0;margin-bottom: 2rem;"></div>
+      <div id="hints-wrap" class="hints-wrap" style="margin:0;margin-bottom: 2rem;"></div>
       <div>
         <div id="party-data" style="text-align:left;" class="text-left w-full max-w-md space-y-2">
           ${generateRoundHTML(appState.roundInfo)}
@@ -204,11 +203,11 @@ function handleCorrectResponse(responseValue: string) {
   } else if (isMultipleResponse(appState.roundInfo, responseValue)) {
     const hintMessage = getHint(appState, 1);
     playCorrectSound();
-    displayHint(`✅ That\'s correct!<br>${hintMessage}`);
+    displayHint(`<b>✅ Correct!</b><br>${hintMessage}`);
     updateResultsUI(appState);
   } else {
     playCorrectSound();
-    displayHint('✅ That\'s correct!');
+    displayHint(`<b>✅ Correct!</b>`);
     updateResultsUI(appState);
   }
   updateCorrectResponsesProgressBar();
@@ -352,20 +351,34 @@ export function isWinner(): boolean {
 }
 
 function displayHint(hintMessage: string) {
-  const hintEl = document.getElementById('hints-wrap');
-  if (!hintEl) {
-    console.error('Hint element not found in the DOM.');
-    return;
+  if(!!hintMessage){ // make sure there is a hint message
+    console.log('Hint message:', hintMessage);
+    const hintEl = document.getElementById('hints-wrap');
+    // add class "visible" to hintEl
+    if (hintEl) {
+      hintEl.classList.add('visible');
+    }
+    if (!hintEl) {
+      console.error('Hint element not found in the DOM.');
+      return;
+    }
+    // delete visible after 5 seconds
+    setTimeout(() => {
+      if (hintEl) {
+        hintEl.classList.remove('visible');
+        hintEl.innerHTML = '';
+      }
+    }, 5000);
+    // Clear previous content
+    hintEl.innerHTML = `<p>${hintMessage}</p>`;
   }
-  if (!hintMessage) {
-    console.error('Hint message is empty or undefined.');
-    return;
-  }
-  hintEl.innerHTML = `<p>${hintMessage}</p>`;
 }
 
 function deleteHint() {
   const hintWrap = document.getElementById('hints-wrap');
+  if (hintWrap) {
+    hintWrap.classList.remove('visible');
+  }
   if (hintWrap) hintWrap.innerHTML = '';
 }
 

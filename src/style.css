@@ -78,33 +78,10 @@ h1 {
 }
 
 input[type="text"] {
-  background: rgb(39, 39, 42);
+  background: #fff;
   border: 1px solid rgb(63, 63, 70);
-  color: #fff;
+  color: #000;
   width: 80%
-}
-
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-
-  background: rgb(63, 63, 70);
-  color: #fff;
-  border: 1px solid #444;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
 }
 
 @keyframes shake {
@@ -122,7 +99,7 @@ button:focus-visible {
 
 
 .text-red {
-  color: #ff4d4d;
+  color: #ff4d4d!important;
 }
 
 
@@ -135,7 +112,7 @@ button:focus-visible {
 .progress-bar {
   width: 100%;
   height: 30px;
-  background-color: #333;
+  background-color: #262626;
   border-radius: 100px;
   overflow: hidden;
   position: relative;
@@ -170,3 +147,108 @@ button:focus-visible {
 .progress-bar-fill.tries {
   background-color: #d9534f;
 }
+
+#guess-wrap {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+#guess-wrap > div {
+  width: 100%;
+  display: flex;
+  justify-content: stretch;
+  align-items: center;
+  gap: 0.5rem;
+}
+.guess-input {
+  flex: 1 1 0%;
+  min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
+  height: 50px;
+  border-radius: 8px;
+  padding: 10px;
+  font-size: 16px;
+}
+.guess-btn {
+  height: 50px;
+  line-height: 50px;
+  flex-shrink: 0;
+  padding: 0 20px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-size: 16px;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+  background: rgb(63, 63, 70);
+  color: #fff;
+  border: 1px solid #444;
+}
+
+
+button {
+  border-radius: 8px;
+  border: 1px solid transparent;
+  padding: 0.6em 1.2em;
+  font-size: 1em;
+  font-weight: 500;
+  font-family: inherit;
+  background-color: #1a1a1a;
+  cursor: pointer;
+  transition: border-color 0.25s;
+
+  background: rgb(63, 63, 70);
+  color: #fff;
+  border: 1px solid #444;
+}
+button:hover {
+  border-color: #646cff;
+}
+button:focus,
+button:focus-visible {
+  outline: 4px auto -webkit-focus-ring-color;
+}
+
+
+.hints-wrap {
+  position: fixed;
+  top: -120px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #E5E4E2;
+  color: #000;
+  padding: 10px 20px;
+  text-align: center;
+  z-index: 1000;
+  border-radius: 120px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.25);
+  transition: top 0.4s cubic-bezier(0.4,0,0.2,1);
+  animation: hint-slide-down-up 5s cubic-bezier(0.4,0,0.2,1) forwards;
+}
+.hints-wrap:not(.visible) {
+  animation: none;
+}
+@keyframes hint-slide-down-up {
+  0% {
+    top: -120px;
+  }
+  10% {
+    top: 30px;
+  }
+  90% {
+    top: 30px;
+  }
+  100% {
+    top: -120px;
+  }
+}
+.hints-wrap.visible {
+  /* The animation will play automatically when .visible is added */
+}
+
+
