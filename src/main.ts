@@ -16,6 +16,7 @@ interface AppState {
   roundInfo: { [key: string]: string | string[] };
   correctResObject: { [key: string]: string | string[] };
   roundImage: number;
+  maxTries: number;
 }
 
 const appState: AppState = {
@@ -23,7 +24,8 @@ const appState: AppState = {
   currentImage: '',
   roundInfo: {},
   correctResObject: {},
-  roundImage: 1
+  roundImage: 1,
+  maxTries: 10 // will be set after roundInfo is set
 }
 
 function getPlayedGameIds(): string[] {
@@ -49,9 +51,9 @@ if (unplayedParties.length === 0) {
   displayYouWonAllGamesMessage();
 } else {
   setupRoundInfo(appState);
+  appState.maxTries = getMaxTries();
 }
 
-const MAX_TRIES = getMaxTries();  // MAx tries depends on the number of items in roundInfo
 const MAX_IMAGES = 3; // Maximum number of images per round
 const IMAGE_ERRORS_THRESHOLD = 3; // Show next image after every 3 incorrect tries
 
@@ -190,14 +192,14 @@ function handleIncorrectResponse(responseValue: string, isCorrect: boolean = fal
   });
   
   updateTriesUsed();
-  playErrorSound(appState.triesUsed, MAX_TRIES);
+  playErrorSound(appState.triesUsed, appState.maxTries);
 
   // Show next image
   if (appState.triesUsed % IMAGE_ERRORS_THRESHOLD === 0 && appState.roundImage < MAX_IMAGES) {
     showNextImage(appState);
   }
   // If tries used exceeds max tries, end the game
-  if (appState.triesUsed >= MAX_TRIES) {
+  if (appState.triesUsed >= appState.maxTries) {
     gameOver(appState);
     return;
   }
@@ -219,8 +221,8 @@ function handleHint(responseValue: string, isCorrect: boolean = false) {
     displayHint(`${yearHint}`);
     playHintSound();
     return
-  } else if (shouldDisplayHint(appState, MAX_TRIES)) {
-    const hintMessage = getHint(appState, 1, MAX_TRIES);
+  } else if (shouldDisplayHint(appState, appState.maxTries)) {
+    const hintMessage = getHint(appState, 1);
     displayHint(hintMessage.trim());
     playHintSound();
   }
@@ -230,7 +232,7 @@ function handleHint(responseValue: string, isCorrect: boolean = false) {
 
 // Check if it's the last chance
 function isLastChance(remainingItems: { [key: string]: string[] }): boolean {
-  return appState.triesUsed === MAX_TRIES - 1 && Object.keys(remainingItems).length === 1;
+  return appState.triesUsed === appState.maxTries - 1 && Object.keys(remainingItems).length === 1;
 }
 
 // Update event listeners

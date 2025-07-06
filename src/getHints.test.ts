@@ -18,7 +18,8 @@ describe('Hint functions', () => {
       correctResObject: {},
       triesUsed: 0,
       currentImage: '',
-      roundImage: 1
+      roundImage: 1,
+      maxTries: 3
     };
     const result = getNewHint(appState, 1);
     expect(result).toContain('💡 Country: SXXXX');
@@ -56,7 +57,8 @@ describe('getLastChanceHint', () => {
       },
       triesUsed: 0,
       currentImage: '',
-      roundImage: 1
+      roundImage: 1,
+      maxTries: 12
     };
     const result = getLastChanceHint(appState);
     expect(result).toContain('💎 LAST CHANCE!');
@@ -83,7 +85,8 @@ describe('getNewHint', () => {
       },
       triesUsed: 0,
       currentImage: '',
-      roundImage: 1
+      roundImage: 1,
+      maxTries: 12
     };
     const result = getNewHint(appState, 1);
     expect(result).toContain('💡 Sound system: DXXXX');
@@ -102,7 +105,8 @@ describe('getNewHint', () => {
       },
       triesUsed: 0,
       currentImage: '',
-      roundImage: 1
+      roundImage: 1,
+      maxTries: 12
     };
     const result = getNewHint(appState, 1);
     expect(result).toBe('No more hints available');
@@ -204,7 +208,8 @@ describe('getHintItemByPosition', () => {
       },
       triesUsed: 0,
       currentImage: '',
-      roundImage: 1
+      roundImage: 1,
+      maxTries: 12
   };
   const hint1 = {Country: 'Spain'}
   const hint2 = {'Sound system': 'Spiral Tribe'}
@@ -243,10 +248,10 @@ describe('getHintPosition', () => {
       },
       triesUsed: 0,
       currentImage: '',
-      roundImage: 1
+      roundImage: 1,
+      maxTries: 15
     } as any; // <-- Add "as any" to avoid type issues
-    const MAX_TRIES = 15;
-    expect(getHintPosition(appState, MAX_TRIES)).toEqual(1);
+    expect(getHintPosition(appState)).toEqual(1);
   });
   it('Should return the correct hint position based on triesUsed and MAX_TRIES', () => {
     const appState = {
@@ -261,10 +266,10 @@ describe('getHintPosition', () => {
       },
       triesUsed: 4,
       currentImage: '',
-      roundImage: 1
+      roundImage: 1,
+      maxTries: 12
     } as any; // <-- Add "as any" to avoid type issues
-    const MAX_TRIES = 15;
-    expect(getHintPosition(appState, MAX_TRIES)).toEqual(2);
+    expect(getHintPosition(appState)).toEqual(2);
   });
   it('Should return the correct hint position based on triesUsed and MAX_TRIES', () => {
     const appState = {
@@ -279,10 +284,10 @@ describe('getHintPosition', () => {
       },
       triesUsed: 7,
       currentImage: '',
-      roundImage: 1
+      roundImage: 1,
+      maxTries: 15
     } as any; // <-- Add "as any" to avoid type issues
-    const MAX_TRIES = 15;
-    expect(getHintPosition(appState, MAX_TRIES)).toEqual(3);
+    expect(getHintPosition(appState)).toEqual(3);
   });
     it('Should return the correct hint position based on triesUsed and MAX_TRIES', () => {
     const appState = {
@@ -297,10 +302,10 @@ describe('getHintPosition', () => {
       },
       triesUsed: 10,
       currentImage: '',
-      roundImage: 1
+      roundImage: 1,
+      maxTries: 15
     } as any; // <-- Add "as any" to avoid type issues
-    const MAX_TRIES = 15;
-    expect(getHintPosition(appState, MAX_TRIES)).toEqual(4);
+    expect(getHintPosition(appState)).toEqual(4);
   });
   it('Should return the correct hint position based on triesUsed and MAX_TRIES', () => {
     const appState = {
@@ -314,10 +319,10 @@ describe('getHintPosition', () => {
       },
       triesUsed: 7,
       currentImage: '',
-      roundImage: 1
+      roundImage: 1,
+      maxTries: 12
     } as any; // <-- Add "as any" to avoid type issues
-    const MAX_TRIES = 12;
-    expect(getHintPosition(appState, MAX_TRIES)).toEqual(2);
+    expect(getHintPosition(appState)).toEqual(2);
   });
 });
 
@@ -330,11 +335,11 @@ describe('shouldDisplayHint', () => {
         Country: 'Spain',
         'Sound system': ['Spiral Tribe', 'Desert Storm']
      },
-      triesUsed: 0
+      triesUsed: 0,
+      maxTries: 12
     }as any;
-    const MAX_TRIES = 12;
 
-    expect(shouldDisplayHint(appState, MAX_TRIES)).toEqual(false);
+    expect(shouldDisplayHint(appState)).toEqual(false);
   });
 
   it('Should use triesUsed, MAX_TRIES and roundInfo to understand if we should show a hint', () => {
@@ -344,10 +349,10 @@ describe('shouldDisplayHint', () => {
         Country: 'Spain',
         'Sound system': ['Spiral Tribe', 'Desert Storm']
      },
-      triesUsed: 3
+      triesUsed: 3,
+      maxTries: 12
     }as any;
-    const MAX_TRIES = 12;
-    expect(shouldDisplayHint(appState, MAX_TRIES)).toEqual(false);
+    expect(shouldDisplayHint(appState)).toEqual(false);
   });
 
   it('Should use triesUsed, MAX_TRIES and roundInfo to understand if we should show a hint', () => {
@@ -357,10 +362,10 @@ describe('shouldDisplayHint', () => {
         Country: 'Spain',
         'Sound system': ['Spiral Tribe', 'Desert Storm']
      },
-      triesUsed: 6
-    }as any; // <-- Add "as any" to avoid type issues;
-    const MAX_TRIES = 12;
-    expect(shouldDisplayHint(appState, MAX_TRIES)).toEqual(false);
+      triesUsed: 6,
+      maxTries: 12
+    }as any; // <-- Add "as any" to avoid type issues
+    expect(shouldDisplayHint(appState)).toEqual(false);
   });
 
   it('Should use triesUsed, MAX_TRIES and roundInfo to understand if we should show a hint', () => {
@@ -370,10 +375,10 @@ describe('shouldDisplayHint', () => {
         Country: 'Spain',
         'Sound system': ['Spiral Tribe', 'Desert Storm']
      },
-      triesUsed: 4
+      triesUsed: 4,
+      maxTries: 12
     }as any;
-    const MAX_TRIES = 12;
-    expect(shouldDisplayHint(appState, MAX_TRIES)).toEqual(false);
+    expect(shouldDisplayHint(appState)).toEqual(false);
   });
   it('Should use triesUsed, MAX_TRIES and roundInfo to understand if we should show a hint', () => {
     const appState = {
@@ -382,10 +387,10 @@ describe('shouldDisplayHint', () => {
         Country: 'Spain',
         'Sound system': ['Spiral Tribe', 'Desert Storm']
      },
-      triesUsed: 7
+      triesUsed: 7,
+      maxTries: 12
     }as any;
-    const MAX_TRIES = 12;
-    expect(shouldDisplayHint(appState, MAX_TRIES)).toEqual(true);
+    expect(shouldDisplayHint(appState)).toEqual(true);
   });
   it('Should use triesUsed, MAX_TRIES and roundInfo to understand if we should show a hint', () => {
     const appState = {
@@ -395,9 +400,9 @@ describe('shouldDisplayHint', () => {
         Year: '1996'
 
      },
-      triesUsed: 3
+      triesUsed: 3,
+      maxTries: 12
     }as any;
-    const MAX_TRIES = 12;
-    expect(shouldDisplayHint(appState, MAX_TRIES)).toEqual(true);
+    expect(shouldDisplayHint(appState)).toEqual(true);
   });
 });

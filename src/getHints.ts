@@ -4,6 +4,7 @@ interface AppState {
   roundInfo: { [key: string]: string | string[] };
   correctResObject: { [key: string]: string | string[] };
   roundImage: number;
+  maxTries: number;
 }
 
 
@@ -101,8 +102,8 @@ export function getNewHint(appState: AppState, level: number = 1): string{
   return 'No more hints available';
 }
 
-export function getHint(appState: AppState, level: number = 1, MAX_TRIES: number): string {
-  const hintPosition = getHintPosition(appState, MAX_TRIES) // Get the hint position based on tries used and max tries
+export function getHint(appState: AppState, level: number = 1): string {
+  const hintPosition = getHintPosition(appState) // Get the hint position based on tries used and max tries
   const itemToHint = getHintItemByPosition(hintPosition, appState) // Get the hint item by position
 
     let hintKey: string | undefined;
@@ -193,21 +194,23 @@ export function getHintItemByPosition(position: number, appState: AppState): { [
   return { [item.key]: item.value };
 }
 
-function getHintThreshold(appState: AppState, maxTries: number): number {
+function getHintThreshold(appState: AppState): number {
   // Count all items (including array values)
+  const maxTries = appState.maxTries;
   const numItems = Object.values(appState.roundInfo).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
   const hintThreshold = Math.ceil(maxTries / numItems);
   return hintThreshold;
 }
 
-export function getHintPosition(appState: AppState, maxTries: number): number {
-  const hintThreshold = getHintThreshold(appState, maxTries);
-  const hintPosition = Math.floor(appState.triesUsed / hintThreshold) + 1
+export function getHintPosition(appState: AppState): number {
+  const triesUsed = appState.triesUsed;
+  const hintThreshold = getHintThreshold(appState);
+  const hintPosition = Math.floor(triesUsed / hintThreshold) + 1
   return hintPosition; // Not a hint try
 }
 
-export function shouldDisplayHint(appState: AppState, maxTries: number): boolean {
-  
+export function shouldDisplayHint(appState: AppState): boolean {
+  const maxTries = appState.maxTries;
   const triesUsed = appState.triesUsed;
   const numItems = Object.values(appState.roundInfo).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
 
