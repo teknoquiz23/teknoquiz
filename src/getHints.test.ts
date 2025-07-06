@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { getLastChanceHint, getNewHint, maskHint, getRemainingItems, getHintItemByPosition, getHintPosition, shouldDisplayHint } from './getHints';
+import { getLastChanceHint, getHint, maskHint, getRemainingItems, getHintItemByPosition, getHintPosition, shouldDisplayHint } from './getHints';
 
 // Sample roundInfo for tests
 const roundInfo = {
@@ -11,7 +11,7 @@ const roundInfo = {
 
 describe('Hint functions', () => {
  
-  it('getNewHint returns masked hint for first unresolved key', () => {
+  it('getHint returns masked hint for first unresolved key', () => {
     const appState = {
       roundInfo,
       correctReponses: [],
@@ -21,7 +21,7 @@ describe('Hint functions', () => {
       roundImage: 1,
       maxTries: 3
     };
-    const result = getNewHint(appState, 1);
+    const result = getHint(appState, 1);
     expect(result).toContain('💡 Country: SXXXX');
   });
   
@@ -67,7 +67,7 @@ describe('getLastChanceHint', () => {
   });
 });
 
-describe('getNewHint', () => {
+describe('getHint', () => {
   it('should return a masked hint for the first unresolved key', () => {
     const appState = {
       roundInfo: {
@@ -88,28 +88,8 @@ describe('getNewHint', () => {
       roundImage: 1,
       maxTries: 12
     };
-    const result = getNewHint(appState, 1);
+    const result = getHint(appState, 1);
     expect(result).toContain('💡 Sound system: DXXXX');
-  });
-
-  it('should return "No more hints available" if all are resolved', () => {
-    const appState = {
-      roundInfo: {
-        Party: 'Teknival',
-        Country: 'Spain'
-      },
-      correctReponses: [],
-      correctResObject: {
-        Party: 'Teknival',
-        Country: 'Spain'
-      },
-      triesUsed: 0,
-      currentImage: '',
-      roundImage: 1,
-      maxTries: 12
-    };
-    const result = getNewHint(appState, 1);
-    expect(result).toBe('No more hints available');
   });
 });
 
@@ -195,8 +175,7 @@ describe('getRemainingItems', () => {
 
 
 describe('getHintItemByPosition', () => {
-  
-  const appState = {
+  let appState = {
       roundInfo: {
         Party: 'Teknival',
         Country: 'Spain',

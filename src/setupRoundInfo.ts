@@ -18,7 +18,7 @@ export function setupRoundInfo(appState: {
   const filtered: { [key: string]: string | string[] } = {};
   for (const [k, v] of Object.entries(randomParty)) {
     if (k === 'id') continue;
-    if (typeof v === 'string' || (Array.isArray(v) && v.every(x => typeof x === 'string'))) {
+    if (typeof v === 'string' || (Array.isArray(v) && (v as unknown[]).every((x): x is string => typeof x === 'string'))) {
       filtered[k] = v;
     }
   }

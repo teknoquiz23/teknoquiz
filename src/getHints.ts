@@ -58,7 +58,7 @@ export function getYearHint(appState: { [key: string]: any }, isCorrect?: boolea
 
 
 export function getLastChanceHint(appState: AppState): string {
-  const hint = getNewHint(appState, 2);
+  const hint = getHint(appState, 2);
   return `<b>💎 LAST CHANCE!</b> ${hint}`;
 }
 
@@ -74,33 +74,33 @@ export function maskHint(word: string, level: number, level1HintChars: number = 
 
 
 
-// OLD function deprecate and use getHint
-export function getNewHint(appState: AppState, level: number = 1): string{
-  // TODO if is year, use getYearhint
-  const remainingItems = getRemainingItems(appState);
-  const firstKey = Object.keys(remainingItems)[0];
-  if (firstKey) {
-    // Define hint levels
-    let level1HintChars = 1;
-    let level2HintChars = 2;
-    if (firstKey === 'Party') {
-      level1HintChars = 2;
-      level2HintChars = 3;
-    }
+// // OLD function deprecate and use getHint
+// export function getNewHint(appState: AppState, level: number = 1): string{
+//   // TODO if is year, use getYearhint
+//   const remainingItems = getRemainingItems(appState);
+//   const firstKey = Object.keys(remainingItems)[0];
+//   if (firstKey) {
+//     // Define hint levels
+//     let level1HintChars = 1;
+//     let level2HintChars = 2;
+//     if (firstKey === 'Party') {
+//       level1HintChars = 2;
+//       level2HintChars = 3;
+//     }
 
-    const firstValue = remainingItems[firstKey][0]; // Use only the first array item
-    // console.log('getNewHint firstValue', firstValue);
+//     const firstValue = remainingItems[firstKey][0]; // Use only the first array item
+//     // console.log('getNewHint firstValue', firstValue);
 
-    const maskedHint = firstValue
-      .split(/\s+/) // Split by spaces
-      .map(word => maskHint(word, level, level1HintChars, level2HintChars))
-      .join(' ');
+//     const maskedHint = firstValue
+//       .split(/\s+/) // Split by spaces
+//       .map(word => maskHint(word, level, level1HintChars, level2HintChars))
+//       .join(' ');
 
-    return `💡 ${firstKey}: ${maskedHint}`;
-  }
+//     return `💡 ${firstKey}: ${maskedHint}`;
+//   }
 
-  return 'No more hints available';
-}
+//   return 'No more hints available';
+// }
 
 export function getHint(appState: AppState, level: number = 1): string {
   const hintPosition = getHintPosition(appState) // Get the hint position based on tries used and max tries
@@ -182,6 +182,13 @@ export function getRemainingItems(appState: AppState): { [key: string]: string[]
 
 export function getHintItemByPosition(position: number, appState: AppState): { [key: string]: string } | undefined {
   const remaining = getRemainingItems(appState);
+  
+  // If only one item is left, return it directly
+  if (Object.keys(remaining).length === 1) {
+    const key = Object.keys(remaining)[0];
+    return { [key]: remaining[key][0] };
+  }
+ 
   // Flatten in the order of keys as in roundInfo, and values as in the array
   const flat: { key: string, value: string }[] = [];
   Object.keys(appState.roundInfo).forEach(key => {

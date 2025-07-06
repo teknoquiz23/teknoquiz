@@ -2,7 +2,7 @@ declare function gtag(...args: any[]): void;
 import './style.css'
 import { loadAndTriggerConfetti } from './confetti'
 import { setupRoundInfo } from './setupRoundInfo';
-import { getYearHint, getLastChanceHint, getNewHint, getRemainingItems, getHint, shouldDisplayHint } from './getHints'
+import { getYearHint, getLastChanceHint, getRemainingItems, getHint, shouldDisplayHint } from './getHints'
 import { updateResultsUI } from './updateResultsUi'
 import { validateAndSaveResponse } from './validateAndSave'
 import { playErrorSound, playWinnerSound, playHintSound, playCorrectSound } from './playSounds'
@@ -167,7 +167,7 @@ function handleCorrectResponse(responseValue: string) {
   if (isWinner()) {
     gameWinner(appState);
   } else if (isMultipleResponse(appState.roundInfo, responseValue)) {
-    const hintMessage = getNewHint(appState, 1);
+    const hintMessage = getHint(appState, 1);
     playCorrectSound();
     displayHint(`✅ That\'s correct!<br>${hintMessage}`);
     updateResultsUI(appState);
@@ -221,7 +221,7 @@ function handleHint(responseValue: string, isCorrect: boolean = false) {
     displayHint(`${yearHint}`);
     playHintSound();
     return
-  } else if (shouldDisplayHint(appState, appState.maxTries)) {
+  } else if (shouldDisplayHint(appState)) {
     const hintMessage = getHint(appState, 1);
     displayHint(hintMessage.trim());
     playHintSound();
