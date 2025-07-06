@@ -59,7 +59,7 @@ export function getYearHint(appState: { [key: string]: any }, isCorrect?: boolea
 
 export function getLastChanceHint(appState: AppState): string {
   const hint = getHint(appState, 2);
-  return `<b>💎 LAST CHANCE!</b> ${hint}`;
+  return `<b>💎 LAST CHANCE!</b><br> ${hint}`;
 }
 
 
@@ -122,8 +122,8 @@ export function getHint(appState: AppState, level: number = 1): string {
           .split(/\s+/) // Split by spaces
           .map(word => maskHint(word, level))
           .join(' ');
-  
-    const hintMessage = `💡 ${hintKey}: ${maskedHint}`;
+
+    const hintMessage = `<b>💡 ${hintKey} hint:</b> ${maskedHint}`;
     return hintMessage;
 }
 

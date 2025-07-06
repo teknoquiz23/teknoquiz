@@ -14,6 +14,7 @@ interface AppState {
   triesUsed: number;
   currentImage: string;
   roundInfo: { [key: string]: string | string[] };
+  roundInfoCount: number; 
   correctResObject: { [key: string]: string | string[] };
   roundImage: number;
   maxTries: number;
@@ -23,6 +24,7 @@ const appState: AppState = {
   triesUsed: 0,
   currentImage: '',
   roundInfo: {},
+  roundInfoCount: 0, // will be set after roundInfo is set
   correctResObject: {},
   roundImage: 1,
   maxTries: 10 // will be set after roundInfo is set
@@ -51,8 +53,17 @@ if (unplayedParties.length === 0) {
   displayYouWonAllGamesMessage();
 } else {
   setupRoundInfo(appState);
+  // Set maxTries based on roundInfo
+  appState.maxTries = getMaxTries(appState.roundInfo);
+  appState.roundInfoCount = Object.values(appState.roundInfo).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
 }
 
+function getMaxTries(roundInfo: { [key: string]: string | string[] }): number {
+  // Calculate max tries based on the number of items in roundInfo, counting each array element
+  const numItems = Object.values(roundInfo).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
+  const maxTries = Math.max(10, numItems * 3); // Ensure at least 10 tries
+  return maxTries;
+}
 const MAX_IMAGES = 3; // Maximum number of images per round
 const IMAGE_ERRORS_THRESHOLD = 3; // Show next image after every 3 incorrect tries
 
@@ -73,9 +84,9 @@ export function increaseTriesUsed() {
     if (triesEl) {
       triesEl.textContent = `${appState.triesUsed}`;
     }
-    const triesWrap = document.getElementById('tries-wrap');
-    if (triesWrap) {
-      shakeText(triesWrap);
+    const triesUsedText = document.getElementById('tries-used-text');
+    if (triesUsedText) {
+      shakeText(triesUsedText);
     }
 }
 
@@ -97,18 +108,24 @@ function renderGameUI(appState: AppState) {
   document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <div class="game">
       
-      <img src="/parties/${appState.currentImage}-${appState.roundImage}.png" alt="Random party" style="max-width: 500px; width: 100%; border-radius: 8px; " />
-      
-      <p id="round-image-counter" style="text-align: center; margin:0; margin-bottom: 0; text-align: center; font-size: 12px;">Image ${appState.roundImage} of ${MAX_IMAGES}</p>
-      <p id="tries-wrap" style="margin:0;margin-bottom:20px; font-size: 12px;"><span id="tries-used">0</span>/${appState.maxTries} tries used</p>
-      <div id="guess-wrap">
-        <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
-          <input id="guess-input" type="text" placeholder="Guess party name, sound system, year or country" style="padding: 0.5em; font-size: 1em;" />
-          <button id="guess-btn" type="button">Go</button>
-        </div>
-          
+      <img src="/parties/${appState.currentImage}-${appState.roundImage}.png" alt="Random party" style="max-width: 500px; width: 100%; border-radius: 8px;" />
+      <br>
+      <p id="round-image-counter" style="text-align: center; margin:0; margin-bottom: 20px; text-align: center; font-size: 12px;">Image ${appState.roundImage} of ${MAX_IMAGES}</p>
+      <div id="progress-bar-tries" class="progress-bar">
+        <span id="tries-used-text" class="progress-bar-text">Tries used: <b><span id="tries-used">0</span> / ${appState.maxTries}</b></span>
+        <span class="progress-bar-fill tries" style="width:0"></span>
       </div>
-      <div id="hints-wrap" style="margin:0;margin-bottom: 2rem;"></div>
+      <div id="progress-bar-responses" class="progress-bar">
+        <span class="progress-bar-text">Correct responses: <b><span id="correct-responses">0</span> / <span id="total-responses">${appState.roundInfoCount}</span></b></span>
+        <span class="progress-bar-fill responses" style="width:0"></span>
+      </div>
+      <div id="guess-wrap">
+        <div>
+          <input id="guess-input" class="guess-input" type="text" placeholder="Guess party name, sound system, year or country" />
+          <button id="guess-btn" class="guess-btn" type="button">Go</button>
+        </div>
+      </div>
+      <div id="hints-wrap" class="hints-wrap" style="margin:0;margin-bottom: 2rem;"></div>
       <div>
         <div id="party-data" style="text-align:left;" class="text-left w-full max-w-md space-y-2">
           ${generateRoundHTML(appState.roundInfo)}
@@ -155,19 +172,45 @@ function isMultipleResponse (roundInfo: { [key: string]: string | string[] }, re
 }
 
 
+function updateCorrectResponsesProgressBar() {
+  const roundInfoCount = Object.values(appState.roundInfo).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
+  const countCorrectResObject = Object.values(appState.correctResObject).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
+  const correctResponsesEl = document.getElementById('correct-responses');
+  correctResponsesEl && (correctResponsesEl.textContent = `${countCorrectResObject}`);
+  // console.log('roundInfoCount', roundInfoCount, 'countCorrectResObject', countCorrectResObject);
+  const progressBarResponses = document.querySelector('#progress-bar-responses .progress-bar-fill');
+  if (progressBarResponses) {
+    const percentage = Math.round((countCorrectResObject / roundInfoCount) * 100);
+    (progressBarResponses as HTMLElement).style.width = `${percentage}%`;
+  }
+}
+function updateTriesProgressBar() {
+  const countTriesUsed = appState.triesUsed;
+  const triesEl = document.getElementById('tries-used');
+  triesEl && (triesEl.textContent = `${countTriesUsed}`);
+  // console.log('roundInfoCount', roundInfoCount, 'countTriesUsed', countTriesUsed);
+  const progressBarTries = document.querySelector('#progress-bar-tries .progress-bar-fill');
+  if (progressBarTries) {
+    const percentage = Math.round((countTriesUsed / appState.maxTries) * 100);
+    (progressBarTries as HTMLElement).style.width = `${percentage}%`;
+  }
+}
+
+
 function handleCorrectResponse(responseValue: string) {
   if (isWinner()) {
     gameWinner(appState);
   } else if (isMultipleResponse(appState.roundInfo, responseValue)) {
     const hintMessage = getHint(appState, 1);
     playCorrectSound();
-    displayHint(`✅ That\'s correct!<br>${hintMessage}`);
+    displayHint(`<b>✅ Correct!</b><br>${hintMessage}`);
     updateResultsUI(appState);
   } else {
     playCorrectSound();
-    displayHint('✅ That\'s correct!');
+    displayHint(`<b>✅ Correct!</b>`);
     updateResultsUI(appState);
   }
+  updateCorrectResponsesProgressBar();
   gtag('event', 'CorrectResponse', {
     event_category: 'Responses',
     event_label: appState.roundInfo['id'] || '',
@@ -185,6 +228,7 @@ function handleIncorrectResponse(responseValue: string, isCorrect: boolean = fal
   
   increaseTriesUsed();
   playErrorSound(appState.triesUsed, appState.maxTries);
+  updateTriesProgressBar()
 
   // Show next image
   if (appState.triesUsed % IMAGE_ERRORS_THRESHOLD === 0 && appState.roundImage < MAX_IMAGES) {
@@ -307,20 +351,34 @@ export function isWinner(): boolean {
 }
 
 function displayHint(hintMessage: string) {
-  const hintEl = document.getElementById('hints-wrap');
-  if (!hintEl) {
-    console.error('Hint element not found in the DOM.');
-    return;
+  if(!!hintMessage){ // make sure there is a hint message
+    console.log('Hint message:', hintMessage);
+    const hintEl = document.getElementById('hints-wrap');
+    // add class "visible" to hintEl
+    if (hintEl) {
+      hintEl.classList.add('visible');
+    }
+    if (!hintEl) {
+      console.error('Hint element not found in the DOM.');
+      return;
+    }
+    // delete visible after 5 seconds
+    setTimeout(() => {
+      if (hintEl) {
+        hintEl.classList.remove('visible');
+        hintEl.innerHTML = '';
+      }
+    }, 5000);
+    // Clear previous content
+    hintEl.innerHTML = `<p>${hintMessage}</p>`;
   }
-  if (!hintMessage) {
-    console.error('Hint message is empty or undefined.');
-    return;
-  }
-  hintEl.innerHTML = `<p>${hintMessage}</p>`;
 }
 
 function deleteHint() {
   const hintWrap = document.getElementById('hints-wrap');
+  if (hintWrap) {
+    hintWrap.classList.remove('visible');
+  }
   if (hintWrap) hintWrap.innerHTML = '';
 }
 
@@ -344,4 +402,5 @@ function savePlayedGameId(id: string) {
 //     return !correctResObject[key];
 //   });
 // }
+
 

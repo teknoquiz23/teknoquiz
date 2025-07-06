@@ -22,7 +22,7 @@ describe('Hint functions', () => {
       maxTries: 3
     };
     const result = getHint(appState, 1);
-    expect(result).toContain('💡 Country: SXXXX');
+    expect(result).toContain('<b>💡 Country hint:</b> SXXXX');
   });
   
 });
@@ -89,7 +89,7 @@ describe('getHint', () => {
       maxTries: 12
     };
     const result = getHint(appState, 1);
-    expect(result).toContain('💡 Sound system: DXXXX');
+    expect(result).toContain('<b>💡 Sound system hint:</b> DXXXXX SXXXX');
   });
 });
 
