@@ -9,6 +9,7 @@ function getPlayedGameIds(): string[] {
 export function setupRoundInfo(appState: {    
   currentImage: string;
   roundInfo: { [key: string]: string | string[] };
+  maxTries?: number;
 }) {
   const playedIds = getPlayedGameIds();
   const availableParties = parties.filter(p => !playedIds.includes(p.id));
@@ -23,4 +24,14 @@ export function setupRoundInfo(appState: {
     }
   }
   appState.roundInfo = filtered;
+
+  // Set maxTries based on roundInfo
+  appState.maxTries = getMaxTries(filtered);
+}
+
+function getMaxTries(roundInfo: { [key: string]: string | string[] }): number {
+  // Calculate max tries based on the number of items in roundInfo, counting each array element
+  const numItems = Object.values(roundInfo).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
+  const maxTries = Math.max(10, numItems * 3); // Ensure at least 10 tries
+  return maxTries;
 }

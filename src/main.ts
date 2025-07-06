@@ -51,18 +51,10 @@ if (unplayedParties.length === 0) {
   displayYouWonAllGamesMessage();
 } else {
   setupRoundInfo(appState);
-  appState.maxTries = getMaxTries();
 }
 
 const MAX_IMAGES = 3; // Maximum number of images per round
 const IMAGE_ERRORS_THRESHOLD = 3; // Show next image after every 3 incorrect tries
-
-function getMaxTries(): number {
-  // Calculate max tries based on the number of items in roundInfo, counting each array element
-  const numItems = Object.values(appState.roundInfo).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
-  const maxTries = Math.max(10, numItems * 3); // Ensure at least 10 tries
-  return maxTries;
-}
 
 function shakeText(element: HTMLElement) {
   element.classList.remove('shake', 'text-red')
@@ -75,7 +67,7 @@ function shakeText(element: HTMLElement) {
   element.addEventListener('animationend', removeShake)
 }
 
-export function updateTriesUsed() {
+export function increaseTriesUsed() {
     appState.triesUsed++;
     const triesEl = document.getElementById('tries-used');
     if (triesEl) {
@@ -108,7 +100,7 @@ function renderGameUI(appState: AppState) {
       <img src="/parties/${appState.currentImage}-${appState.roundImage}.png" alt="Random party" style="max-width: 500px; width: 100%; border-radius: 8px; " />
       
       <p id="round-image-counter" style="text-align: center; margin:0; margin-bottom: 0; text-align: center; font-size: 12px;">Image ${appState.roundImage} of ${MAX_IMAGES}</p>
-      <p id="tries-wrap" style="margin:0;margin-bottom:20px; font-size: 12px;"><span id="tries-used">0</span>/${getMaxTries()} tries used</p>
+      <p id="tries-wrap" style="margin:0;margin-bottom:20px; font-size: 12px;"><span id="tries-used">0</span>/${appState.maxTries} tries used</p>
       <div id="guess-wrap">
         <div style="display: flex; justify-content: center; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;">
           <input id="guess-input" type="text" placeholder="Guess party name, sound system, year or country" style="padding: 0.5em; font-size: 1em;" />
@@ -191,7 +183,7 @@ function handleIncorrectResponse(responseValue: string, isCorrect: boolean = fal
     value: 1
   });
   
-  updateTriesUsed();
+  increaseTriesUsed();
   playErrorSound(appState.triesUsed, appState.maxTries);
 
   // Show next image
