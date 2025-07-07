@@ -107,30 +107,36 @@ function showNextImage(appState: AppState) {
 function renderGameUI(appState: AppState) {
   document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
     <div class="game">
-      
-      <img src="/parties/${appState.currentImage}-${appState.roundImage}.png" alt="Random party" style="max-width: 500px; width: 100%; border-radius: 8px;" />
-      <br>
+        
+      <div class="image-container">
+        <img src="/parties/${appState.currentImage}-${appState.roundImage}.png" alt="Random party" style="width: 100%; border-radius: 8px;" />
+  
+      </div>
       <p id="round-image-counter" style="text-align: center; margin:0; margin-bottom: 20px; text-align: center; font-size: 12px;">Image ${appState.roundImage} of ${MAX_IMAGES}</p>
-      <div id="progress-bar-tries" class="progress-bar">
-        <span id="tries-used-text" class="progress-bar-text">Tries used: <b><span id="tries-used">0</span> / ${appState.maxTries}</b></span>
-        <span class="progress-bar-fill tries" style="width:0"></span>
-      </div>
-      <div id="progress-bar-responses" class="progress-bar">
-        <span class="progress-bar-text">Correct responses: <b><span id="correct-responses">0</span> / <span id="total-responses">${appState.roundInfoCount}</span></b></span>
-        <span class="progress-bar-fill responses" style="width:0"></span>
-      </div>
-      <div id="guess-wrap">
-        <div>
-          <input id="guess-input" class="guess-input" type="text" placeholder="Guess party name, sound system, year or country" />
-          <button id="guess-btn" class="guess-btn" type="button">Go</button>
+      <div class="game-ui">
+        <div class="game-ui-inner">
+          <div class="progress-bars">
+            <div id="progress-bar-tries" class="progress-bar">
+              <span id="tries-used-text" class="progress-bar-text">Tries used: <b><span id="tries-used">0</span> / ${appState.maxTries}</b></span>
+            <span class="progress-bar-fill tries" style="width:0"></span>
+            </div>
+            <div id="progress-bar-responses" class="progress-bar">
+              <span class="progress-bar-text">Correct responses: <b><span id="correct-responses">0</span> / <span id="total-responses">${appState.roundInfoCount}</span></b></span>
+              <span class="progress-bar-fill responses" style="width:0"></span>
+            </div>
+          </div>
+          <div class="guess-wrap">
+            <div>
+              <input id="guess-input" class="guess-input" type="text" placeholder="Guess party name, sound system, year or country" />
+              <button id="guess-btn" class="guess-btn" type="button">Go</button>
+            </div>
+          </div>
         </div>
       </div>
       <div id="hints-wrap" class="hints-wrap" style="margin:0;margin-bottom: 2rem;"></div>
-      <div>
-        <div id="party-data" style="text-align:left;" class="text-left w-full max-w-md space-y-2">
+      <div class="results-data">
           ${generateRoundHTML(appState.roundInfo)}
         </div>
-      </div>
     </div>
   `
 }
