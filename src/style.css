@@ -184,10 +184,9 @@ input[type="text"] {
   font-size: 16px;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #2ebaff;
   cursor: pointer;
   transition: border-color 0.25s;
-  background: rgb(63, 63, 70);
   color: #fff;
   border: 1px solid #444;
 }
@@ -200,11 +199,9 @@ button {
   font-size: 1em;
   font-weight: 500;
   font-family: inherit;
-  background-color: #1a1a1a;
+  background-color: #2ebaff;
   cursor: pointer;
   transition: border-color 0.25s;
-
-  background: rgb(63, 63, 70);
   color: #fff;
   border: 1px solid #444;
 }
@@ -263,6 +260,22 @@ button:focus-visible {
   background-size: 50px;
   background-repeat: no-repeat;
   background-position: right 10px center;
+}
+
+.image-container{
+  position: relative;
+  margin-bottom: 20px;
+}
+.round-image-counter {
+  position: absolute;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.7);
+  padding: 5px 10px;
+  border-radius: 50px;
+  margin:0;
+  font-size: 12px;
 }
 
 

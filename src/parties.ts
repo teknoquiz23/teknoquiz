@@ -2,13 +2,13 @@
 export const parties = [
   {
     id: "a32d23c32c",
-    Party: "Dragon festival",
+    "Party name": "Dragon festival",
     Country: "Spain",
     Year: "2006"
   },
   {
     id: "ds42f3fv2cv2v2v",
-    Party: "New year",
+    "Party name": "New year",
     "Sound system": "Rizomatik",
     Country: "Spain",
     Year: "2007"
@@ -31,13 +31,13 @@ export const parties = [
   },
   {
     id: "123124151251",
-    Party: "Czechtek",
+    "Party name": "Czechtek",
     Country: "Czech Republic",
     Year: "2005"
   },
   {
     id: "2f2ef23f23",
-    Party: "Vendetta",
+    "Party name": "Vendetta",
     "Sound systems": ["Oxyde", "Trakkas"],
     Country: "Italy",
   }

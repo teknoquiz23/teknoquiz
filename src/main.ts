@@ -108,13 +108,13 @@ function showNextImage(appState: AppState) {
 // --- Rendering ---
 function renderGameUI(appState: AppState) {
   document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
+    <p>${appState.inputDescription}</p>
     <div class="game">
-        
       <div class="image-container">
         <img src="/parties/${appState.currentImage}-${appState.roundImage}.png" alt="Random party" style="width: 100%; border-radius: 8px;" />
-  
+        <p id="round-image-counter" class="round-image-counter">Image ${appState.roundImage} of ${MAX_IMAGES}</p>
       </div>
-      <p id="round-image-counter" style="text-align: center; margin:0; margin-bottom: 20px; text-align: center; font-size: 12px;">Image ${appState.roundImage} of ${MAX_IMAGES}</p>
+      
       <div class="game-ui">
         <div class="game-ui-inner">
           <div class="progress-bars">
@@ -140,8 +140,8 @@ function renderGameUI(appState: AppState) {
       </div>
       <div id="hints-wrap" class="hints-wrap" style="margin:0;margin-bottom: 2rem;"></div>
       <div class="results-data">
-          ${generateRoundHTML(appState.roundInfo)}
-        </div>
+        ${generateRoundHTML(appState.roundInfo)}
+      </div>
     </div>
   `
 }
