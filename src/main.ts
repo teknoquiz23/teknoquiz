@@ -1,3 +1,5 @@
+import { createApp } from 'vue'
+
 declare function gtag(...args: any[]): void;
 import './style.css'
 import { loadAndTriggerConfetti } from './confetti'
@@ -7,6 +9,7 @@ import { updateResultsUI } from './updateResultsUi'
 import { validateAndSaveResponse } from './validateAndSave'
 import { playErrorSound, playWinnerSound, playHintSound, playCorrectSound } from './playSounds'
 import { parties } from './parties';
+import Hint from './components/Hint.vue';
 
 
 
@@ -361,28 +364,21 @@ export function isWinner(): boolean {
   return true;
 }
 
+let hintApp: any = null;
+
 function displayHint(hintMessage: string) {
-  if(!!hintMessage){ // make sure there is a hint message
-    console.log('Hint message:', hintMessage);
-    const hintEl = document.getElementById('hints-wrap');
-    // add class "visible" to hintEl
-    if (hintEl) {
-      hintEl.classList.add('visible');
-    }
-    if (!hintEl) {
-      console.error('Hint element not found in the DOM.');
-      return;
-    }
-    // delete visible after 5 seconds
-    setTimeout(() => {
-      if (hintEl) {
-        hintEl.classList.remove('visible');
-        hintEl.innerHTML = '';
-      }
-    }, 5000);
-    // Clear previous content
-    hintEl.innerHTML = `<p>${hintMessage}</p>`;
+  if (!hintMessage) return;
+  const hintWrap = document.getElementById('hints-wrap');
+  if (!hintWrap) return;
+  // Remove any previous Vue app
+  if (hintApp) {
+    hintApp.unmount();
+    hintApp = null;
+    hintWrap.innerHTML = '';
   }
+  // Use the already imported createApp from Vue
+  hintApp = createApp(Hint, { message: hintMessage });
+  hintApp.mount(hintWrap);
 }
 
 function deleteHint() {
