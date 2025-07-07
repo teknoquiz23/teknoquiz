@@ -20,7 +20,7 @@ describe('Hint functions', () => {
       currentImage: '',
       roundImage: 1,
       maxTries: 3
-    };
+    } as any;
     const result = getHint(appState, 1);
     expect(result).toContain('<b>💡 Country hint:</b> SXXXX');
   });
@@ -59,7 +59,7 @@ describe('getLastChanceHint', () => {
       currentImage: '',
       roundImage: 1,
       maxTries: 12
-    };
+    }as any;
     const result = getLastChanceHint(appState);
     expect(result).toContain('💎 LAST CHANCE!');
     expect(result).toContain('Sound system');
@@ -87,7 +87,7 @@ describe('getHint', () => {
       currentImage: '',
       roundImage: 1,
       maxTries: 12
-    };
+    } as any;
     const result = getHint(appState, 1);
     expect(result).toContain('<b>💡 Sound system hint:</b> DXXXXX SXXXX');
   });
@@ -189,7 +189,7 @@ describe('getHintItemByPosition', () => {
       currentImage: '',
       roundImage: 1,
       maxTries: 12
-  };
+  }as any;
   const hint1 = {Country: 'Spain'}
   const hint2 = {'Sound system': 'Spiral Tribe'}
   const hint3 = {'Sound system': 'Desert Storm'}

@@ -5,6 +5,7 @@ interface AppState {
   correctResObject: { [key: string]: string | string[] };
   roundImage: number;
   maxTries: number;
+  inputDescription: string;
 }
 
 

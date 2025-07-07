@@ -18,6 +18,7 @@ interface AppState {
   correctResObject: { [key: string]: string | string[] };
   roundImage: number;
   maxTries: number;
+  inputDescription: string;
 }
 
 const appState: AppState = {
@@ -27,7 +28,8 @@ const appState: AppState = {
   roundInfoCount: 0, // will be set after roundInfo is set
   correctResObject: {},
   roundImage: 1,
-  maxTries: 10 // will be set after roundInfo is set
+  maxTries: 10, // will be set after roundInfo is set
+  inputDescription: ''
 }
 
 function getPlayedGameIds(): string[] {
@@ -130,7 +132,7 @@ function renderGameUI(appState: AppState) {
           </div>
           <div class="guess-wrap">
             <div>
-              <input id="guess-input" class="guess-input" type="text" placeholder="Guess party name, sound system, year or country" />
+              <input id="guess-input" class="guess-input" type="text" placeholder="${appState.inputDescription}" />
               <button id="guess-btn" class="guess-btn" type="button">Go</button>
             </div>
           </div>

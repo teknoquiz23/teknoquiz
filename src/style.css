@@ -259,6 +259,10 @@ button:focus-visible {
   color: #fff;
   padding: 1rem;
   border-radius: 8px;
+  background-image: url('./icon-question-mark.svg');
+  background-size: 50px;
+  background-repeat: no-repeat;
+  background-position: right 10px center;
 }
 
 
