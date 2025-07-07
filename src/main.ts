@@ -120,10 +120,13 @@ function renderGameUI(appState: AppState) {
               <span id="tries-used-text" class="progress-bar-text">Tries used: <b><span id="tries-used">0</span> / ${appState.maxTries}</b></span>
             <span class="progress-bar-fill tries" style="width:0"></span>
             </div>
+
+            ${appState.roundInfoCount > 1 ? `
             <div id="progress-bar-responses" class="progress-bar">
               <span class="progress-bar-text">Correct responses: <b><span id="correct-responses">0</span> / <span id="total-responses">${appState.roundInfoCount}</span></b></span>
               <span class="progress-bar-fill responses" style="width:0"></span>
             </div>
+            ` : ''}
           </div>
           <div class="guess-wrap">
             <div>
