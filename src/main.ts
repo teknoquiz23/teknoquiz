@@ -12,7 +12,7 @@ import { validateAndSaveResponse } from './validateAndSave'
 import { playErrorSound, playWinnerSound, playHintSound, playCorrectSound } from './playSounds'
 import Hint from './components/Hint.vue';
 import { renderGameUI, setAppNameTitleAndIcon, generateInputDescription } from './ui/renderGameUI';
-import { increaseTriesUsed, shakeText, showNextImage, updateCorrectResponsesProgressBar, updateTriesProgressBar } from './ui/utils';
+import { increaseTriesUsed, showNextImage, updateCorrectResponsesProgressBar, updateTriesProgressBar } from './ui/utils';
 
 
 
@@ -102,47 +102,6 @@ function getMaxTries(roundInfo: { [key: string]: string | string[] }): number {
 }
 const MAX_IMAGES = 3; // Maximum number of images per round
 const IMAGE_ERRORS_THRESHOLD = 3; // Show next image after every 3 incorrect tries
-
-// --- Rendering ---
-// function renderGameUI(appState: AppState) {
-//   document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-//     <p>${appState.inputDescription}</p>
-//     <div class="game">
-//       <div class="image-container">
-//         <img src="${getImageFolder()}${appState.currentImage}-${appState.roundImage}.png" alt="Random party" style="width: 100%; border-radius: 8px;" />
-//         <p id="round-image-counter" class="round-image-counter">Image ${appState.roundImage} of ${MAX_IMAGES}</p>
-//       </div>
-      
-//       <div class="game-ui">
-//         <div class="game-ui-inner">
-//           <div class="progress-bars">
-//             <div id="progress-bar-tries" class="progress-bar">
-//               <span id="tries-used-text" class="progress-bar-text">Tries used: <b><span id="tries-used">0</span> / ${appState.maxTries}</b></span>
-//             <span class="progress-bar-fill tries" style="width:0"></span>
-//             </div>
-
-//             ${appState.roundInfoCount > 1 ? `
-//             <div id="progress-bar-responses" class="progress-bar">
-//               <span class="progress-bar-text">Correct responses: <b><span id="correct-responses">0</span> / <span id="total-responses">${appState.roundInfoCount}</span></b></span>
-//               <span class="progress-bar-fill responses" style="width:0"></span>
-//             </div>
-//             ` : ''}
-//           </div>
-//           <div class="guess-wrap">
-//             <div>
-//               <input id="guess-input" class="guess-input" type="text" placeholder="${appState.inputDescription}" />
-//               <button id="guess-btn" class="guess-btn" type="button">Go</button>
-//             </div>
-//           </div>
-//         </div>
-//       </div>
-//       <div id="hints-wrap" class="hints-wrap" style="margin:0;margin-bottom: 2rem;"></div>
-//       <div class="results-data">
-//         ${generateRoundHTML(appState.roundInfo)}
-//       </div>
-//     </div>
-//   `
-// }
 
 // Now set up event listeners and dynamic content
 function handleResponse(responseValue: string) {
@@ -248,17 +207,7 @@ function isLastChance(remainingItems: { [key: string]: string[] }): boolean {
   return appState.triesUsed === appState.maxTries - 1 && Object.keys(remainingItems).length === 1;
 }
 
-// Dynamically generate content based on roundInfo keys
-function generateRoundHTML(roundInfo: any): string {
-  if (!roundInfo) return ''
-  return Object.keys(roundInfo)
-    .map(key => {
-      const values = Array.isArray(roundInfo[key]) ? roundInfo[key] : [roundInfo[key]];
-      const label = values.length > 1 ? `${key} (${values.length}):` : `${key}:`;
-      return `<div><b>${label}</b> <span class="result-${key.toLowerCase().replace(/\s+/g, '-')}" ></span></div>`;
-    })
-    .join('')
-}
+
 
 function gameWinner(appState: AppState) {
   // Game winner logic
