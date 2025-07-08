@@ -1,5 +1,3 @@
-// TODO refactor so we don't depend on hardcoded 'Sound system'
-
 export function updateResultsUI(appState: any) {
   if (!appState.roundInfo || !appState.correctResObject) return;
   Object.keys(appState.correctResObject).forEach((key: string) => {
@@ -19,8 +17,6 @@ export function updateResultsUI(appState: any) {
   });
 }
 
-
-
-function getResultSelector(key: string): string {
+export function getResultSelector(key: string): string {
   return `.result-${key.toLowerCase().replace(/\s+/g, '-')}`;
 }
