@@ -339,7 +339,7 @@ function gameWinner(appState: AppState) {
   if (gameDiv) gameDiv.style.display = 'none'
   if (youWin) youWin.style.display = 'block'
   loadAndTriggerConfetti()
-  // playWinnerSound();
+  playWinnerSound();
   savePlayedGameId(appState.currentImage);
   
   gtag('event', 'gameWinner', {
