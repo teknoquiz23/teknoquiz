@@ -9,7 +9,7 @@ import { loadAndTriggerConfetti } from './confetti'
 import { getYearHint, getLastChanceHint, getRemainingItems, getHint, shouldDisplayHint } from './getHints'
 import { updateResultsUI } from './ui/updateResults'
 import { validateAndSaveResponse } from './validateAndSave'
-import { playErrorSound, playWinnerSound, playHintSound, playCorrectSound } from './playSounds'
+import { playErrorSound, playWinnerSound, playHintSound, playCorrectSound } from './ui/playSounds'
 import Hint from './components/Hint.vue';
 import { renderGameUI, setAppNameTitleAndIcon, generateInputDescription } from './ui/renderGameUI';
 import { increaseTriesUsed, showNextImage, updateCorrectResponsesProgressBar, updateTriesProgressBar } from './ui/utils';
