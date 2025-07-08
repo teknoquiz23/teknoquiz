@@ -1,16 +1,16 @@
 export const items = [
   {
-    id: "led",
+    id: "2v24h3g1v24",
     "Band name": "Led Zeppelin",
     Members: ["Robert Plant", "Jimmy Page"],
   },  
   {
-    id: "metallica",
+    id: "123bk123b",
     "Band name": "Metallica"
   },
   {
-    id: "u2",
+    id: "7as8dyaahd",
     "Band name": "U2",
-    Members: ["Bono", "The Edge", "Adam Clayton"],
+    Members: ["Bono", "The Edge", "Adam Clayton", "Larry Mullen"],
   }
 ]
