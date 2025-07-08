@@ -1,10 +1,11 @@
+declare function gtag(...args: any[]): void;
+
+import './style.css'
 import { createApp } from 'vue'
 import { getAppDataModule, getImageFolder, appConfig } from './initGame';
-
-declare function gtag(...args: any[]): void;
-import './style.css'
+import { appState } from './appState/appState';
+import type { AppState } from './appState/appState';
 import { loadAndTriggerConfetti } from './confetti'
-import { setupRoundInfo } from './setupRoundInfo';
 import { getYearHint, getLastChanceHint, getRemainingItems, getHint, shouldDisplayHint } from './getHints'
 import { updateResultsUI } from './updateResultsUi'
 import { validateAndSaveResponse } from './validateAndSave'
@@ -12,28 +13,6 @@ import { playErrorSound, playWinnerSound, playHintSound, playCorrectSound } from
 import Hint from './components/Hint.vue';
 
 
-
-interface AppState {
-  triesUsed: number;
-  currentImage: string;
-  roundInfo: { [key: string]: string | string[] };
-  roundInfoCount: number; 
-  correctResObject: { [key: string]: string | string[] };
-  roundImage: number;
-  maxTries: number;
-  inputDescription: string;
-}
-
-const appState: AppState = {
-  triesUsed: 0,
-  currentImage: '',
-  roundInfo: {},
-  roundInfoCount: 0, // will be set after roundInfo is set
-  correctResObject: {},
-  roundImage: 1,
-  maxTries: 10, // will be set after roundInfo is set
-  inputDescription: ''
-}
 
 function getPlayedGameIds(): string[] {
   const key = 'playedGameIds';
@@ -84,6 +63,21 @@ function setAppNameTitleAndIcon() {
   if (iconEl) iconEl.textContent = appConfig.appIcon || '';
 }
 
+async function setupRoundInfo(appState: AppState, availableParties: any[]) {
+  // Pick a random party from availableParties
+  const randomParty = availableParties[Math.floor(Math.random() * availableParties.length)];
+  appState.currentImage = randomParty.id;
+  const filtered: { [key: string]: string | string[] } = {};
+  for (const [k, v] of Object.entries(randomParty)) {
+    if (k === 'id') continue;
+    if (typeof v === 'string' || (Array.isArray(v) && (v as unknown[]).every((x): x is string => typeof x === 'string'))) {
+      filtered[k] = v;
+    }
+  }
+  appState.roundInfo = filtered;
+  appState.inputDescription = generateInputDescription(appState.roundInfo);
+}
+
 async function initGame() {
   setAppNameTitleAndIcon();
   const playedIds = getPlayedGameIds();
@@ -93,14 +87,14 @@ async function initGame() {
 
   if (unplayedParties.length === 0) {
     displayYouWonAllGamesMessage();
-  } else {
-    await setupRoundInfo(appState);
-    // Set maxTries based on roundInfo
-    appState.maxTries = getMaxTries(appState.roundInfo);
-    appState.roundInfoCount = Object.values(appState.roundInfo).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
-    renderGameUI(appState);
-    setupEventListeners();
+    return;
   }
+
+  await setupRoundInfo(appState, unplayedParties);
+  appState.maxTries = getMaxTries(appState.roundInfo);
+  appState.roundInfoCount = Object.values(appState.roundInfo).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
+  renderGameUI(appState);
+  setupEventListeners();
 }
 
 initGame();
@@ -414,14 +408,15 @@ function savePlayedGameId(id: string) {
   }
 }
 
-// function getFirstUnansweredKey(roundInfo: { [key: string]: string | string[] }, correctResObject: { [key: string]: string | string[] }): string | undefined {
-//   return Object.keys(roundInfo).find(key => {
-//     const value = roundInfo[key];
-//     if (Array.isArray(value)) {
-//       return value.some(item => !correctResObject[key] || !Array.isArray(correctResObject[key]) || !(correctResObject[key] as string[]).includes(item));
-//     }
-//     return !correctResObject[key];
-//   });
-// }
+function generateInputDescription(roundInfo : { [key: string]: string | string[] }): string {
+  const keys = Object.keys(roundInfo).map(key => key.toLowerCase());
+  if (keys.length === 0) return '';
+  if (keys.length === 1) return `Guess the ${keys[0]} based on the image`;
+  if (keys.length === 2) return `Guess the ${keys[0]} and ${keys[1]} based on the image`;
+  // For 3 or more keys, join with commas and 'and' before the last
+  const allButLast = keys.slice(0, -1).join(', ');
+  const last = keys[keys.length - 1];
+  return `Guess the ${allButLast}, and ${last} based on the image`;
+}
 
 
