@@ -90,7 +90,7 @@ describe('getHint', () => {
     } as any;
     const result = getHint(appState, 1);
     expect(result).toContain('<b>💡 Sound system hint:</b> DXXXXX SXXXX');
-  });
+  })
 });
 
 describe('getRemainingItems', () => {

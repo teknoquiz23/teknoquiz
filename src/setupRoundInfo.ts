@@ -1,4 +1,4 @@
-import { parties } from './parties'
+import { getAppDataModule } from './initGame';
 
 function getPlayedGameIds(): string[] {
   const key = 'playedGameIds';
@@ -17,14 +17,17 @@ function generateInputDescription(roundInfo : { [key: string]: string | string[]
   return `Guess the ${allButLast}, and ${last} based on the image`;
 }
 
-export function setupRoundInfo(appState: {    
+export async function setupRoundInfo(appState: {    
   currentImage: string;
   roundInfo: { [key: string]: string | string[] };
   maxTries?: number;
   inputDescription?: string;
 }) {
+  const module = await getAppDataModule();
+  console.log(module.items)
+  const items = module.items;
   const playedIds = getPlayedGameIds();
-  const availableParties = parties.filter(p => !playedIds.includes(p.id));
+  const availableParties = items.filter((p: any) => !playedIds.includes(p.id));
   const randomParty = availableParties[Math.floor(Math.random() * availableParties.length)];
   appState.currentImage = randomParty.id;
   

@@ -24,7 +24,6 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
   place-items: center;
   min-width: 320px;
   min-height: 100vh;
@@ -37,6 +36,7 @@ h1 {
   font-size: 3.2em;
   line-height: 1.1;
   margin-bottom: 0;
+  margin-top: 0;
 }
 
 @media (max-width: 600px) {
@@ -187,7 +187,7 @@ input[type="text"] {
   background-color: #2ebaff;
   cursor: pointer;
   transition: border-color 0.25s;
-  color: #fff;
+  color: #000;
   border: 1px solid #444;
 }
 
@@ -271,11 +271,12 @@ button:focus-visible {
   bottom: 15px;
   left: 50%;
   transform: translateX(-50%);
-  background-color: rgba(0, 0, 0, 0.7);
-  padding: 5px 10px;
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 5px 15px;
   border-radius: 50px;
   margin:0;
-  font-size: 12px;
+  font-size: 14px;
+  border:1px solid #444;
 }
 
 
