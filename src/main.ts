@@ -1,4 +1,5 @@
 import { createApp } from 'vue'
+import { getAppDataModule, getImageFolder, appConfig } from './initGame';
 
 declare function gtag(...args: any[]): void;
 import './style.css'
@@ -8,7 +9,6 @@ import { getYearHint, getLastChanceHint, getRemainingItems, getHint, shouldDispl
 import { updateResultsUI } from './updateResultsUi'
 import { validateAndSaveResponse } from './validateAndSave'
 import { playErrorSound, playWinnerSound, playHintSound, playCorrectSound } from './playSounds'
-import { parties } from './parties';
 import Hint from './components/Hint.vue';
 
 
@@ -51,17 +51,59 @@ function displayYouWonAllGamesMessage() {
   });
 }
 
-const playedIds = getPlayedGameIds();
-const unplayedParties = parties.filter(p => !playedIds.includes(p.id));
-
-if (unplayedParties.length === 0) {
-  displayYouWonAllGamesMessage();
-} else {
-  setupRoundInfo(appState);
-  // Set maxTries based on roundInfo
-  appState.maxTries = getMaxTries(appState.roundInfo);
-  appState.roundInfoCount = Object.values(appState.roundInfo).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
+function setupEventListeners() {
+  const guessBtn = document.getElementById('guess-btn');
+  const guessInput = document.getElementById('guess-input') as HTMLInputElement;
+  guessBtn?.addEventListener('click', () => {
+    handleResponse(guessInput.value);
+    guessInput.value = '';
+  });
+  guessInput?.addEventListener('keydown', e => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleResponse(guessInput.value);
+      guessInput.value = '';
+    }
+  });
+  document.getElementById('try-again-btn')?.addEventListener('click', () => {
+    window.location.reload();
+  });
+  document.getElementById('new-round-btn')?.addEventListener('click', () => {
+    window.location.reload();
+  });
+  document.getElementById('reset-all-btn')?.addEventListener('click', () => {
+    localStorage.removeItem('playedGameIds');
+    window.location.reload();
+  });
 }
+
+function setAppNameTitleAndIcon() {
+  const titleEl = document.getElementById('app-name-title');
+  if (titleEl) titleEl.textContent = appConfig.appName.charAt(0).toUpperCase() + appConfig.appName.slice(1);
+  const iconEl = document.getElementById('app-name-icon');
+  if (iconEl) iconEl.textContent = appConfig.appIcon || '';
+}
+
+async function initGame() {
+  setAppNameTitleAndIcon();
+  const playedIds = getPlayedGameIds();
+  const module = await getAppDataModule();
+  const items = module.items;
+  const unplayedParties = items.filter((p: any) => !playedIds.includes(p.id));
+
+  if (unplayedParties.length === 0) {
+    displayYouWonAllGamesMessage();
+  } else {
+    await setupRoundInfo(appState);
+    // Set maxTries based on roundInfo
+    appState.maxTries = getMaxTries(appState.roundInfo);
+    appState.roundInfoCount = Object.values(appState.roundInfo).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
+    renderGameUI(appState);
+    setupEventListeners();
+  }
+}
+
+initGame();
 
 function getMaxTries(roundInfo: { [key: string]: string | string[] }): number {
   // Calculate max tries based on the number of items in roundInfo, counting each array element
@@ -104,7 +146,7 @@ function showNextImage(appState: AppState) {
     }
     // Next image logic
     const img = document.querySelector('.game img') as HTMLImageElement
-    if (img) img.src = `/parties/${appState.currentImage}-${appState.roundImage}.png`
+    if (img) img.src = `${getImageFolder()}${appState.currentImage}-${appState.roundImage}.png`
 }
 
 
@@ -114,7 +156,7 @@ function renderGameUI(appState: AppState) {
     <p>${appState.inputDescription}</p>
     <div class="game">
       <div class="image-container">
-        <img src="/parties/${appState.currentImage}-${appState.roundImage}.png" alt="Random party" style="width: 100%; border-radius: 8px;" />
+        <img src="${getImageFolder()}${appState.currentImage}-${appState.roundImage}.png" alt="Random party" style="width: 100%; border-radius: 8px;" />
         <p id="round-image-counter" class="round-image-counter">Image ${appState.roundImage} of ${MAX_IMAGES}</p>
       </div>
       
@@ -149,15 +191,9 @@ function renderGameUI(appState: AppState) {
   `
 }
 
-// Call rendering
-renderGameUI(appState)
-
 // Now set up event listeners and dynamic content
-const guessBtn = document.getElementById('guess-btn')
-const guessInput = document.getElementById('guess-input') as HTMLInputElement
-
-
 function handleResponse(responseValue: string) {
+  console.log('handleResponse triggered');
   // Clear all hint messages first
   deleteHint()
   if (!responseValue || !appState.roundInfo) return
@@ -167,7 +203,6 @@ function handleResponse(responseValue: string) {
   } else {
     handleIncorrectResponse(responseValue, isCorrect);
   }
-  guessInput.value = '';
 }
 
 
@@ -285,27 +320,6 @@ function isLastChance(remainingItems: { [key: string]: string[] }): boolean {
   return appState.triesUsed === appState.maxTries - 1 && Object.keys(remainingItems).length === 1;
 }
 
-// Update event listeners
-guessBtn?.addEventListener('click', () => handleResponse(guessInput.value))
-guessInput?.addEventListener('keydown', e => {
-  if (e.key === 'Enter') {
-    e.preventDefault()
-    handleResponse(guessInput.value)
-  }
-})
-document.getElementById('try-again-btn')?.addEventListener('click', () => {
-  window.location.reload()
-})
-document.getElementById('new-round-btn')?.addEventListener('click', () => {
-  window.location.reload()
-})
-
-document.getElementById('reset-all-btn')?.addEventListener('click', () => {
-  localStorage.removeItem('playedGameIds')
-  window.location.reload()
-})
-
-
 // Dynamically generate content based on roundInfo keys
 function generateRoundHTML(roundInfo: any): string {
   if (!roundInfo) return ''
@@ -325,7 +339,7 @@ function gameWinner(appState: AppState) {
   if (gameDiv) gameDiv.style.display = 'none'
   if (youWin) youWin.style.display = 'block'
   loadAndTriggerConfetti()
-  playWinnerSound();
+  // playWinnerSound();
   savePlayedGameId(appState.currentImage);
   
   gtag('event', 'gameWinner', {
@@ -344,7 +358,7 @@ function gameOver(appState: AppState) {
   // Play game over sound
   const audio = new Audio('/sounds/game-over-sound.mp3');
   audio.loop = true;
-  audio.play();
+  //audio.play();
   gtag('event', 'gameOver', {
     event_category: 'gameplay',
     event_label: appState.roundInfo['id'] || '',
