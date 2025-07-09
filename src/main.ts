@@ -5,10 +5,10 @@ import { createApp } from 'vue'
 import { getAppDataModule } from './initGame';
 import { appState } from './state/appState';
 import type { AppState } from './state/appState';
-import { loadAndTriggerConfetti } from './confetti'
-import { getYearHint, getLastChanceHint, getRemainingItems, getHint, shouldDisplayHint } from './getHints'
+import { loadAndTriggerConfetti } from './ui/confetti';
+import { getYearHint, getLastChanceHint, getRemainingItems, getHint, shouldDisplayHint } from './game/getHints';
+import { validateAndSaveResponse } from './game/validateAndSave';
 import { updateResultsUI } from './ui/updateResults'
-import { validateAndSaveResponse } from './validateAndSave'
 import { playErrorSound, playWinnerSound, playHintSound, playCorrectSound } from './ui/playSounds'
 import Hint from './components/Hint.vue';
 import { renderGameUI, setAppNameTitleAndIcon, generateInputDescription } from './ui/renderGameUI';
@@ -103,10 +103,7 @@ function getMaxTries(roundInfo: { [key: string]: string | string[] }): number {
 const MAX_IMAGES = 3; // Maximum number of images per round
 const IMAGE_ERRORS_THRESHOLD = 3; // Show next image after every 3 incorrect tries
 
-// Now set up event listeners and dynamic content
 function handleResponse(responseValue: string) {
-  console.log('handleResponse triggered');
-  // Clear all hint messages first
   deleteHint()
   if (!responseValue || !appState.roundInfo) return
   const isCorrect = validateAndSaveResponse(responseValue, appState);

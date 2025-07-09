@@ -1,3 +1,5 @@
+// LEGACY FILE - safe to delete, logic moved to /game/validateAndSave.test.ts
+
 import { describe, it, expect } from 'vitest';
 import { getKeyForInputValue } from './validateAndSave';
 

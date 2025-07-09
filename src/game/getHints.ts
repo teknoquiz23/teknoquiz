@@ -1,3 +1,5 @@
+// LEGACY FILE - safe to delete, logic moved to /game/getHints.ts
+
 interface AppState {
   triesUsed: number;
   currentImage: string;
