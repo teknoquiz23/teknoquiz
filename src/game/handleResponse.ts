@@ -65,7 +65,7 @@ export function handleIncorrectResponse(responseValue: string, isCorrect: boolea
     displayHint(getLastChanceHint(appState));
     playHintSound();
     return;
-  } else if (Number(responseValue)) {
+  } else if (isYear(responseValue)) {
     const yearHint = getYearHint(appState, isCorrect, responseValue);
     displayHint(`${yearHint}`);
     playHintSound();
@@ -75,4 +75,19 @@ export function handleIncorrectResponse(responseValue: string, isCorrect: boolea
     displayHint(hintMessage.trim());
     playHintSound();
   }
+}
+
+function isYear(number: string): boolean {
+  // check if it's a number
+  if (isNaN(Number(number))) {
+    return false;
+  }
+  // check also if it's betwwen 1900 and 2100
+  const year = parseInt(number, 10);
+  if (isNaN(year) || year < 1900 || year > 2100) {
+    return false;
+  }
+  // Check if the number is a valid year (4 digits)
+  return /^\d{4}$/.test(number);
+
 }
