@@ -6,13 +6,13 @@ import { getAppDataModule } from './initGame';
 import { appState } from './state/appState';
 import type { AppState } from './state/appState';
 import { loadAndTriggerConfetti } from './ui/confetti';
-import { getYearHint, getLastChanceHint, getRemainingItems, getHint, shouldDisplayHint } from './game/getHints';
+import { getRemainingItems } from './game/getHints';
 import { validateAndSaveResponse } from './game/validateAndSave';
-import { updateResultsUI } from './ui/updateResults'
-import { playErrorSound, playWinnerSound, playHintSound, playCorrectSound } from './ui/playSounds'
+import { playWinnerSound } from './ui/playSounds'
 import Hint from './components/Hint.vue';
 import { renderGameUI, setAppNameTitleAndIcon, generateInputDescription } from './ui/renderGameUI';
-import { increaseTriesUsed, showNextImage, updateCorrectResponsesProgressBar, updateTriesProgressBar } from './ui/utils';
+import { increaseTriesUsed } from './ui/utils';
+import { handleResponse } from './game/handleResponse';
 
 
 
@@ -36,13 +36,37 @@ function setupEventListeners() {
   const guessBtn = document.getElementById('guess-btn');
   const guessInput = document.getElementById('guess-input') as HTMLInputElement;
   guessBtn?.addEventListener('click', () => {
-    handleResponse(guessInput.value);
+    handleResponse(
+      guessInput.value,
+      appState,
+      validateAndSaveResponse,
+      isWinner,
+      isMultipleResponse,
+      gameWinner,
+      gameOver,
+      displayHint,
+      deleteHint,
+      increaseTriesUsed,
+      gtag
+    );
     guessInput.value = '';
   });
   guessInput?.addEventListener('keydown', e => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleResponse(guessInput.value);
+      handleResponse(
+        guessInput.value,
+        appState,
+        validateAndSaveResponse,
+        isWinner,
+        isMultipleResponse,
+        gameWinner,
+        gameOver,
+        displayHint,
+        deleteHint,
+        increaseTriesUsed,
+        gtag
+      );
       guessInput.value = '';
     }
   });
@@ -100,21 +124,6 @@ function getMaxTries(roundInfo: { [key: string]: string | string[] }): number {
   const maxTries = Math.max(10, numItems * 3); // Ensure at least 10 tries
   return maxTries;
 }
-const MAX_IMAGES = 3; // Maximum number of images per round
-const IMAGE_ERRORS_THRESHOLD = 3; // Show next image after every 3 incorrect tries
-
-function handleResponse(responseValue: string) {
-  deleteHint()
-  if (!responseValue || !appState.roundInfo) return
-  const isCorrect = validateAndSaveResponse(responseValue, appState);
-  if (isCorrect) {
-    handleCorrectResponse(responseValue);
-  } else {
-    handleIncorrectResponse(responseValue, isCorrect);
-  }
-}
-
-
 
 function isMultipleResponse (roundInfo: { [key: string]: string | string[] }, responseValue: string): boolean {
   // Verifica si responseValue se encuentra dentro de algún array en roundInfo y que el array tenga más de un elemento
@@ -129,80 +138,6 @@ function isMultipleResponse (roundInfo: { [key: string]: string | string[] }, re
   return false;
 }
 
-
-function handleCorrectResponse(responseValue: string) {
-  if (isWinner()) {
-    gameWinner(appState);
-  } else if (isMultipleResponse(appState.roundInfo, responseValue)) {
-    const hintMessage = getHint(appState, 1);
-    playCorrectSound();
-    displayHint(`<b>✅ Correct!</b><br>${hintMessage}`);
-    updateResultsUI(appState);
-  } else {
-    playCorrectSound();
-    displayHint(`<b>✅ Correct!</b>`);
-    updateResultsUI(appState);
-  }
-  updateCorrectResponsesProgressBar(appState);
-  gtag('event', 'CorrectResponse', {
-    event_category: 'Responses',
-    event_label: appState.roundInfo['id'] || '',
-    value: 1
-  });
-}
-
-function handleIncorrectResponse(responseValue: string, isCorrect: boolean = false) {
-  
-  gtag('event', 'IncorrectResponse', {
-    event_category: 'Responses',
-    event_label: appState.roundInfo['id'] || '',
-    value: 1
-  });
-  
-  increaseTriesUsed();
-  playErrorSound(appState.triesUsed, appState.maxTries);
-  updateTriesProgressBar(appState)
-
-  // Show next image
-  if (appState.triesUsed % IMAGE_ERRORS_THRESHOLD === 0 && appState.roundImage < MAX_IMAGES) {
-    showNextImage(appState);
-  }
-  // If tries used exceeds max tries, end the game
-  if (appState.triesUsed >= appState.maxTries) {
-    gameOver(appState);
-    return;
-  }
-  handleHint(responseValue, isCorrect);  
-}
-
-function handleHint(responseValue: string, isCorrect: boolean = false) {
-  const remainingItems = getRemainingItems(appState);
-  // If the response is last chance
-  if (isLastChance(remainingItems)) {
-    displayHint(getLastChanceHint(appState));
-    playHintSound();
-    return;
-  }
-  // If the response is a number
-  else if (Number(responseValue)) { // TODO, check if is a valid year
-    console.log(responseValue, 'is a number');
-    const yearHint = getYearHint(appState, isCorrect, responseValue);
-    displayHint(`${yearHint}`);
-    playHintSound();
-    return
-  } else if (shouldDisplayHint(appState)) {
-    const hintMessage = getHint(appState, 1);
-    displayHint(hintMessage.trim());
-    playHintSound();
-  }
-}
-
-
-
-// Check if it's the last chance
-function isLastChance(remainingItems: { [key: string]: string[] }): boolean {
-  return appState.triesUsed === appState.maxTries - 1 && Object.keys(remainingItems).length === 1;
-}
 
 
 
