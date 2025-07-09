@@ -11,7 +11,7 @@ import { validateAndSaveResponse } from './game/validateAndSave';
 import { playWinnerSound } from './ui/playSounds'
 import Hint from './components/Hint.vue';
 import { renderGameUI, setAppNameTitleAndIcon, generateInputDescription } from './ui/renderGameUI';
-import { increaseTriesUsed } from './ui/utils';
+import { increaseTriesUsed, getMaxTries, isMultipleResponse } from './ui/utils';
 import { handleResponse } from './game/handleResponse';
 
 
@@ -117,29 +117,6 @@ async function initGame() {
 }
 
 initGame();
-
-function getMaxTries(roundInfo: { [key: string]: string | string[] }): number {
-  // Calculate max tries based on the number of items in roundInfo, counting each array element
-  const numItems = Object.values(roundInfo).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
-  const maxTries = Math.max(10, numItems * 3); // Ensure at least 10 tries
-  return maxTries;
-}
-
-function isMultipleResponse (roundInfo: { [key: string]: string | string[] }, responseValue: string): boolean {
-  // Verifica si responseValue se encuentra dentro de algún array en roundInfo y que el array tenga más de un elemento
-  const normalized = (str: string) => str.trim().toLowerCase();
-  for (const value of Object.values(roundInfo)) {
-    if (Array.isArray(value) && value.length > 1) {
-      if (value.some(v => normalized(String(v)) === normalized(responseValue))) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-
-
 
 function gameWinner(appState: AppState) {
   // Game winner logic
