@@ -7,13 +7,12 @@ import { appState } from './state/appState';
 import type { AppState } from './state/appState';
 import { loadAndTriggerConfetti } from './ui/confetti';
 import { getRemainingItems } from './game/getHints';
-import { validateAndSaveResponse } from './game/validateAndSave';
 import { playWinnerSound } from './ui/playSounds'
 import Hint from './components/Hint.vue';
 import SuccessModal from './components/SuccessModal.vue';
 import GameOverModal from './components/GameOverModal.vue';
 import { renderGameUI, setAppNameTitleAndIcon, generateInputDescription } from './ui/renderGameUI';
-import { increaseTriesUsed, getMaxTries, isMultipleResponse } from './ui/utils';
+import { getMaxTries } from './ui/utils';
 import { handleResponse } from './game/handleResponse';
 
 
@@ -40,16 +39,7 @@ function setupEventListeners() {
   guessBtn?.addEventListener('click', () => {
     handleResponse(
       guessInput.value,
-      appState,
-      validateAndSaveResponse,
-      isWinner,
-      isMultipleResponse,
-      gameWinner,
-      gameOver,
-      displayHint,
-      deleteHint,
-      increaseTriesUsed,
-      gtag
+      appState
     );
     guessInput.value = '';
   });
@@ -58,16 +48,7 @@ function setupEventListeners() {
       e.preventDefault();
       handleResponse(
         guessInput.value,
-        appState,
-        validateAndSaveResponse,
-        isWinner,
-        isMultipleResponse,
-        gameWinner,
-        gameOver,
-        displayHint,
-        deleteHint,
-        increaseTriesUsed,
-        gtag
+        appState
       );
       guessInput.value = '';
     }
@@ -122,7 +103,7 @@ initGame();
 
 
 
-function gameWinner(appState: AppState) {
+export function gameWinner(appState: AppState) {
 
   // load modal
   const modalDiv = document.createElement('div');
@@ -141,7 +122,7 @@ function gameWinner(appState: AppState) {
   });
 }
 
-function gameOver(appState: AppState) {
+export function gameOver(appState: AppState) {
   // Mount GameOverModal on page load for debugging
   const gameOverModalDiv = document.createElement('div');
   gameOverModalDiv.id = 'gameover-modal';
@@ -173,7 +154,7 @@ export function isWinner(): boolean {
 
 let hintApp: any = null;
 
-function displayHint(hintMessage: string) {
+export function displayHint(hintMessage: string) {
   if (!hintMessage) return;
   const hintWrap = document.getElementById('hints-wrap');
   if (!hintWrap) return;
@@ -188,7 +169,7 @@ function displayHint(hintMessage: string) {
   hintApp.mount(hintWrap);
 }
 
-function deleteHint() {
+export function deleteHint() {
   const hintWrap = document.getElementById('hints-wrap');
   if (hintWrap) {
     hintWrap.classList.remove('visible');

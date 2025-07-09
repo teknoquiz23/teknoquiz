@@ -1,25 +1,24 @@
 import { getHint, shouldDisplayHint, getLastChanceHint, getYearHint, getRemainingItems } from './getHints';
 import { playCorrectSound, playErrorSound, playHintSound } from '../ui/playSounds';
 import { updateResultsUI } from '../ui/updateResults';
-import { updateCorrectResponsesProgressBar, updateTriesProgressBar, showNextImage } from '../ui/utils';
+import { updateCorrectResponsesProgressBar, updateTriesProgressBar, showNextImage, isMultipleResponse, increaseTriesUsed } from '../ui/utils';
+import { deleteHint, isWinner, gameWinner, displayHint, gameOver } from '../main'
+import { validateAndSaveResponse } from './validateAndSave';
 import type { AppState } from '../state/appState';
 
-// These will be injected or imported as needed
-// import { appState } from '../state/appState';
-// import { validateAndSaveResponse } from './validateAndSave';
 
-export function handleResponse(responseValue: string, appState: AppState, validateAndSaveResponse: (responseValue: string, appState: AppState) => boolean, isWinner: () => boolean, isMultipleResponse: (roundInfo: { [key: string]: string | string[] }, responseValue: string) => boolean, gameWinner: (appState: AppState) => void, gameOver: (appState: AppState) => void, displayHint: (hint: string) => void, deleteHint: () => void, increaseTriesUsed: () => void, gtag: (...args: any[]) => void) {
+export function handleResponse(responseValue: string, appState: AppState) {
   deleteHint();
   if (!responseValue || !appState.roundInfo) return;
   const isCorrect = validateAndSaveResponse(responseValue, appState);
   if (isCorrect) {
-    handleCorrectResponse(responseValue, appState, isWinner, isMultipleResponse, gameWinner, displayHint, updateResultsUI, playCorrectSound, updateCorrectResponsesProgressBar, gtag);
+    handleCorrectResponse(responseValue, appState);
   } else {
-    handleIncorrectResponse(responseValue, isCorrect, appState, gameOver, displayHint, playErrorSound, updateTriesProgressBar, showNextImage, getRemainingItems, getLastChanceHint, playHintSound, getYearHint, shouldDisplayHint, getHint, gtag, increaseTriesUsed);
+    handleIncorrectResponse(responseValue, isCorrect, appState);
   }
 }
 
-export function handleCorrectResponse(responseValue: string, appState: AppState, isWinner: () => boolean, isMultipleResponse: (roundInfo: { [key: string]: string | string[] }, responseValue: string) => boolean, gameWinner: (appState: AppState) => void, displayHint: (hint: string) => void, updateResultsUI: (appState: AppState) => void, playCorrectSound: () => void, updateCorrectResponsesProgressBar: (appState: AppState) => void, gtag: (...args: any[]) => void) {
+export function handleCorrectResponse(responseValue: string, appState: AppState) {
   if (isWinner()) {
     gameWinner(appState);
   } else if (isMultipleResponse(appState.roundInfo, responseValue)) {
@@ -33,19 +32,19 @@ export function handleCorrectResponse(responseValue: string, appState: AppState,
     updateResultsUI(appState);
   }
   updateCorrectResponsesProgressBar(appState);
-  gtag('event', 'CorrectResponse', {
-    event_category: 'Responses',
-    event_label: appState.roundInfo['id'] || '',
-    value: 1
-  });
+//   gtag('event', 'CorrectResponse', {
+//     event_category: 'Responses',
+//     event_label: appState.roundInfo['id'] || '',
+//     value: 1
+//   });
 }
 
-export function handleIncorrectResponse(responseValue: string, isCorrect: boolean, appState: AppState, gameOver: (appState: AppState) => void, displayHint: (hint: string) => void, playErrorSound: (triesUsed: number, maxTries: number) => void, updateTriesProgressBar: (appState: AppState) => void, showNextImage: (appState: AppState) => void, getRemainingItems: (appState: AppState) => any, getLastChanceHint: (appState: AppState) => string, playHintSound: () => void, getYearHint: (appState: AppState, isCorrect: boolean, responseValue: string) => string, shouldDisplayHint: (appState: AppState) => boolean, getHint: (appState: AppState, n: number) => string, gtag: (...args: any[]) => void, increaseTriesUsed: () => void) {
-  gtag('event', 'IncorrectResponse', {
-    event_category: 'Responses',
-    event_label: appState.roundInfo['id'] || '',
-    value: 1
-  });
+export function handleIncorrectResponse(responseValue: string, isCorrect: boolean, appState: AppState) {
+//   gtag('event', 'IncorrectResponse', {
+//     event_category: 'Responses',
+//     event_label: appState.roundInfo['id'] || '',
+//     value: 1
+//   });
   increaseTriesUsed();
   playErrorSound(appState.triesUsed, appState.maxTries);
   updateTriesProgressBar(appState);
