@@ -144,14 +144,14 @@ function gameWinner(appState: AppState) {
 function gameOver(appState: AppState) {
   // Mount GameOverModal on page load for debugging
   const gameOverModalDiv = document.createElement('div');
-  gameOverModalDiv.id = 'gameover-modal-debug';
+  gameOverModalDiv.id = 'gameover-modal';
   document.body.appendChild(gameOverModalDiv);
-  createApp(GameOverModal).mount('#gameover-modal-debug');
+  createApp(GameOverModal).mount('#gameover-modal');
   
   // Play game over sound
   const audio = new Audio('/sounds/game-over-sound.mp3');
   audio.loop = true;
-  //audio.play();
+  audio.play();
   gtag('event', 'gameOver', {
     event_category: 'gameplay',
     event_label: appState.roundInfo['id'] || '',
