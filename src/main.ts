@@ -10,6 +10,8 @@ import { getRemainingItems } from './game/getHints';
 import { validateAndSaveResponse } from './game/validateAndSave';
 import { playWinnerSound } from './ui/playSounds'
 import Hint from './components/Hint.vue';
+import SuccessModal from './components/SuccessModal.vue';
+import GameOverModal from './components/GameOverModal.vue';
 import { renderGameUI, setAppNameTitleAndIcon, generateInputDescription } from './ui/renderGameUI';
 import { increaseTriesUsed, getMaxTries, isMultipleResponse } from './ui/utils';
 import { handleResponse } from './game/handleResponse';
@@ -118,12 +120,16 @@ async function initGame() {
 
 initGame();
 
+
+
 function gameWinner(appState: AppState) {
-  // Game winner logic
-  const gameDiv = document.querySelector('.game') as HTMLElement
-  const youWin = document.getElementById('you-win') as HTMLElement
-  if (gameDiv) gameDiv.style.display = 'none'
-  if (youWin) youWin.style.display = 'block'
+
+  // load modal
+  const modalDiv = document.createElement('div');
+  modalDiv.id = 'success-modal';
+  document.body.appendChild(modalDiv);
+  createApp(SuccessModal).mount('#success-modal');
+
   loadAndTriggerConfetti()
   playWinnerSound();
   savePlayedGameId(appState.currentImage);
@@ -136,11 +142,12 @@ function gameWinner(appState: AppState) {
 }
 
 function gameOver(appState: AppState) {
-  // Game over logic
-  const gameDiv = document.querySelector('.game') as HTMLElement;
-  const tryAgain = document.getElementById('try-again') as HTMLButtonElement;
-  if (gameDiv) gameDiv.style.display = 'none';
-  if (tryAgain) tryAgain.style.display = 'block';
+  // Mount GameOverModal on page load for debugging
+  const gameOverModalDiv = document.createElement('div');
+  gameOverModalDiv.id = 'gameover-modal-debug';
+  document.body.appendChild(gameOverModalDiv);
+  createApp(GameOverModal).mount('#gameover-modal-debug');
+  
   // Play game over sound
   const audio = new Audio('/sounds/game-over-sound.mp3');
   audio.loop = true;
