@@ -1,39 +1,20 @@
-import { createApp } from 'vue'
-import { getAppDataModule, getImageFolder, appConfig } from './initGame';
-
 declare function gtag(...args: any[]): void;
+
 import './style.css'
-import { loadAndTriggerConfetti } from './confetti'
-import { setupRoundInfo } from './setupRoundInfo';
-import { getYearHint, getLastChanceHint, getRemainingItems, getHint, shouldDisplayHint } from './getHints'
-import { updateResultsUI } from './updateResultsUi'
-import { validateAndSaveResponse } from './validateAndSave'
-import { playErrorSound, playWinnerSound, playHintSound, playCorrectSound } from './playSounds'
+import { createApp } from 'vue'
+import { getAppDataModule } from './initGame';
+import { appState } from './state/appState';
+import type { AppState } from './state/appState';
+import { loadAndTriggerConfetti } from './ui/confetti';
+import { getRemainingItems } from './game/getHints';
+import { validateAndSaveResponse } from './game/validateAndSave';
+import { playWinnerSound } from './ui/playSounds'
 import Hint from './components/Hint.vue';
+import { renderGameUI, setAppNameTitleAndIcon, generateInputDescription } from './ui/renderGameUI';
+import { increaseTriesUsed, getMaxTries, isMultipleResponse } from './ui/utils';
+import { handleResponse } from './game/handleResponse';
 
 
-
-interface AppState {
-  triesUsed: number;
-  currentImage: string;
-  roundInfo: { [key: string]: string | string[] };
-  roundInfoCount: number; 
-  correctResObject: { [key: string]: string | string[] };
-  roundImage: number;
-  maxTries: number;
-  inputDescription: string;
-}
-
-const appState: AppState = {
-  triesUsed: 0,
-  currentImage: '',
-  roundInfo: {},
-  roundInfoCount: 0, // will be set after roundInfo is set
-  correctResObject: {},
-  roundImage: 1,
-  maxTries: 10, // will be set after roundInfo is set
-  inputDescription: ''
-}
 
 function getPlayedGameIds(): string[] {
   const key = 'playedGameIds';
@@ -55,13 +36,37 @@ function setupEventListeners() {
   const guessBtn = document.getElementById('guess-btn');
   const guessInput = document.getElementById('guess-input') as HTMLInputElement;
   guessBtn?.addEventListener('click', () => {
-    handleResponse(guessInput.value);
+    handleResponse(
+      guessInput.value,
+      appState,
+      validateAndSaveResponse,
+      isWinner,
+      isMultipleResponse,
+      gameWinner,
+      gameOver,
+      displayHint,
+      deleteHint,
+      increaseTriesUsed,
+      gtag
+    );
     guessInput.value = '';
   });
   guessInput?.addEventListener('keydown', e => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleResponse(guessInput.value);
+      handleResponse(
+        guessInput.value,
+        appState,
+        validateAndSaveResponse,
+        isWinner,
+        isMultipleResponse,
+        gameWinner,
+        gameOver,
+        displayHint,
+        deleteHint,
+        increaseTriesUsed,
+        gtag
+      );
       guessInput.value = '';
     }
   });
@@ -77,11 +82,19 @@ function setupEventListeners() {
   });
 }
 
-function setAppNameTitleAndIcon() {
-  const titleEl = document.getElementById('app-name-title');
-  if (titleEl) titleEl.textContent = appConfig.appName.charAt(0).toUpperCase() + appConfig.appName.slice(1);
-  const iconEl = document.getElementById('app-name-icon');
-  if (iconEl) iconEl.textContent = appConfig.appIcon || '';
+async function setupRoundInfo(appState: AppState, availableParties: any[]) {
+  // Pick a random party from availableParties
+  const randomParty = availableParties[Math.floor(Math.random() * availableParties.length)];
+  appState.currentImage = randomParty.id;
+  const filtered: { [key: string]: string | string[] } = {};
+  for (const [k, v] of Object.entries(randomParty)) {
+    if (k === 'id') continue;
+    if (typeof v === 'string' || (Array.isArray(v) && (v as unknown[]).every((x): x is string => typeof x === 'string'))) {
+      filtered[k] = v;
+    }
+  }
+  appState.roundInfo = filtered;
+  appState.inputDescription = generateInputDescription(appState.roundInfo);
 }
 
 async function initGame() {
@@ -93,244 +106,17 @@ async function initGame() {
 
   if (unplayedParties.length === 0) {
     displayYouWonAllGamesMessage();
-  } else {
-    await setupRoundInfo(appState);
-    // Set maxTries based on roundInfo
-    appState.maxTries = getMaxTries(appState.roundInfo);
-    appState.roundInfoCount = Object.values(appState.roundInfo).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
-    renderGameUI(appState);
-    setupEventListeners();
+    return;
   }
+
+  await setupRoundInfo(appState, unplayedParties);
+  appState.maxTries = getMaxTries(appState.roundInfo);
+  appState.roundInfoCount = Object.values(appState.roundInfo).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
+  renderGameUI(appState);
+  setupEventListeners();
 }
 
 initGame();
-
-function getMaxTries(roundInfo: { [key: string]: string | string[] }): number {
-  // Calculate max tries based on the number of items in roundInfo, counting each array element
-  const numItems = Object.values(roundInfo).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
-  const maxTries = Math.max(10, numItems * 3); // Ensure at least 10 tries
-  return maxTries;
-}
-const MAX_IMAGES = 3; // Maximum number of images per round
-const IMAGE_ERRORS_THRESHOLD = 3; // Show next image after every 3 incorrect tries
-
-function shakeText(element: HTMLElement) {
-  element.classList.remove('shake', 'text-red')
-  void element.offsetWidth // force reflow
-  element.classList.add('shake', 'text-red')
-  const removeShake = () => {
-    element.classList.remove('shake', 'text-red')
-    element.removeEventListener('animationend', removeShake)
-  }
-  element.addEventListener('animationend', removeShake)
-}
-
-export function increaseTriesUsed() {
-    appState.triesUsed++;
-    const triesEl = document.getElementById('tries-used');
-    if (triesEl) {
-      triesEl.textContent = `${appState.triesUsed}`;
-    }
-    const triesUsedText = document.getElementById('tries-used-text');
-    if (triesUsedText) {
-      shakeText(triesUsedText);
-    }
-}
-
-function showNextImage(appState: AppState) {
-    appState.roundImage++
-    // Update image number counter
-    const imgCounter = document.getElementById('round-image-counter')
-    if (imgCounter) {
-      imgCounter.textContent = `Image ${appState.roundImage} of ${MAX_IMAGES}`
-    }
-    // Next image logic
-    const img = document.querySelector('.game img') as HTMLImageElement
-    if (img) img.src = `${getImageFolder()}${appState.currentImage}-${appState.roundImage}.png`
-}
-
-
-// --- Rendering ---
-function renderGameUI(appState: AppState) {
-  document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-    <p>${appState.inputDescription}</p>
-    <div class="game">
-      <div class="image-container">
-        <img src="${getImageFolder()}${appState.currentImage}-${appState.roundImage}.png" alt="Random party" style="width: 100%; border-radius: 8px;" />
-        <p id="round-image-counter" class="round-image-counter">Image ${appState.roundImage} of ${MAX_IMAGES}</p>
-      </div>
-      
-      <div class="game-ui">
-        <div class="game-ui-inner">
-          <div class="progress-bars">
-            <div id="progress-bar-tries" class="progress-bar">
-              <span id="tries-used-text" class="progress-bar-text">Tries used: <b><span id="tries-used">0</span> / ${appState.maxTries}</b></span>
-            <span class="progress-bar-fill tries" style="width:0"></span>
-            </div>
-
-            ${appState.roundInfoCount > 1 ? `
-            <div id="progress-bar-responses" class="progress-bar">
-              <span class="progress-bar-text">Correct responses: <b><span id="correct-responses">0</span> / <span id="total-responses">${appState.roundInfoCount}</span></b></span>
-              <span class="progress-bar-fill responses" style="width:0"></span>
-            </div>
-            ` : ''}
-          </div>
-          <div class="guess-wrap">
-            <div>
-              <input id="guess-input" class="guess-input" type="text" placeholder="${appState.inputDescription}" />
-              <button id="guess-btn" class="guess-btn" type="button">Go</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div id="hints-wrap" class="hints-wrap" style="margin:0;margin-bottom: 2rem;"></div>
-      <div class="results-data">
-        ${generateRoundHTML(appState.roundInfo)}
-      </div>
-    </div>
-  `
-}
-
-// Now set up event listeners and dynamic content
-function handleResponse(responseValue: string) {
-  console.log('handleResponse triggered');
-  // Clear all hint messages first
-  deleteHint()
-  if (!responseValue || !appState.roundInfo) return
-  const isCorrect = validateAndSaveResponse(responseValue, appState);
-  if (isCorrect) {
-    handleCorrectResponse(responseValue);
-  } else {
-    handleIncorrectResponse(responseValue, isCorrect);
-  }
-}
-
-
-
-function isMultipleResponse (roundInfo: { [key: string]: string | string[] }, responseValue: string): boolean {
-  // Verifica si responseValue se encuentra dentro de algún array en roundInfo y que el array tenga más de un elemento
-  const normalized = (str: string) => str.trim().toLowerCase();
-  for (const value of Object.values(roundInfo)) {
-    if (Array.isArray(value) && value.length > 1) {
-      if (value.some(v => normalized(String(v)) === normalized(responseValue))) {
-        return true;
-      }
-    }
-  }
-  return false;
-}
-
-
-function updateCorrectResponsesProgressBar() {
-  const roundInfoCount = Object.values(appState.roundInfo).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
-  const countCorrectResObject = Object.values(appState.correctResObject).reduce((acc, val) => acc + (Array.isArray(val) ? val.length : 1), 0);
-  const correctResponsesEl = document.getElementById('correct-responses');
-  correctResponsesEl && (correctResponsesEl.textContent = `${countCorrectResObject}`);
-  // console.log('roundInfoCount', roundInfoCount, 'countCorrectResObject', countCorrectResObject);
-  const progressBarResponses = document.querySelector('#progress-bar-responses .progress-bar-fill');
-  if (progressBarResponses) {
-    const percentage = Math.round((countCorrectResObject / roundInfoCount) * 100);
-    (progressBarResponses as HTMLElement).style.width = `${percentage}%`;
-  }
-}
-function updateTriesProgressBar() {
-  const countTriesUsed = appState.triesUsed;
-  const triesEl = document.getElementById('tries-used');
-  triesEl && (triesEl.textContent = `${countTriesUsed}`);
-  // console.log('roundInfoCount', roundInfoCount, 'countTriesUsed', countTriesUsed);
-  const progressBarTries = document.querySelector('#progress-bar-tries .progress-bar-fill');
-  if (progressBarTries) {
-    const percentage = Math.round((countTriesUsed / appState.maxTries) * 100);
-    (progressBarTries as HTMLElement).style.width = `${percentage}%`;
-  }
-}
-
-
-function handleCorrectResponse(responseValue: string) {
-  if (isWinner()) {
-    gameWinner(appState);
-  } else if (isMultipleResponse(appState.roundInfo, responseValue)) {
-    const hintMessage = getHint(appState, 1);
-    playCorrectSound();
-    displayHint(`<b>✅ Correct!</b><br>${hintMessage}`);
-    updateResultsUI(appState);
-  } else {
-    playCorrectSound();
-    displayHint(`<b>✅ Correct!</b>`);
-    updateResultsUI(appState);
-  }
-  updateCorrectResponsesProgressBar();
-  gtag('event', 'CorrectResponse', {
-    event_category: 'Responses',
-    event_label: appState.roundInfo['id'] || '',
-    value: 1
-  });
-}
-
-function handleIncorrectResponse(responseValue: string, isCorrect: boolean = false) {
-  
-  gtag('event', 'IncorrectResponse', {
-    event_category: 'Responses',
-    event_label: appState.roundInfo['id'] || '',
-    value: 1
-  });
-  
-  increaseTriesUsed();
-  playErrorSound(appState.triesUsed, appState.maxTries);
-  updateTriesProgressBar()
-
-  // Show next image
-  if (appState.triesUsed % IMAGE_ERRORS_THRESHOLD === 0 && appState.roundImage < MAX_IMAGES) {
-    showNextImage(appState);
-  }
-  // If tries used exceeds max tries, end the game
-  if (appState.triesUsed >= appState.maxTries) {
-    gameOver(appState);
-    return;
-  }
-  handleHint(responseValue, isCorrect);  
-}
-
-function handleHint(responseValue: string, isCorrect: boolean = false) {
-  const remainingItems = getRemainingItems(appState);
-  // If the response is last chance
-  if (isLastChance(remainingItems)) {
-    displayHint(getLastChanceHint(appState));
-    playHintSound();
-    return;
-  }
-  // If the response is a number
-  else if (Number(responseValue)) { // TODO, check if is a valid year
-    console.log(responseValue, 'is a number');
-    const yearHint = getYearHint(appState, isCorrect, responseValue);
-    displayHint(`${yearHint}`);
-    playHintSound();
-    return
-  } else if (shouldDisplayHint(appState)) {
-    const hintMessage = getHint(appState, 1);
-    displayHint(hintMessage.trim());
-    playHintSound();
-  }
-}
-
-
-
-// Check if it's the last chance
-function isLastChance(remainingItems: { [key: string]: string[] }): boolean {
-  return appState.triesUsed === appState.maxTries - 1 && Object.keys(remainingItems).length === 1;
-}
-
-// Dynamically generate content based on roundInfo keys
-function generateRoundHTML(roundInfo: any): string {
-  if (!roundInfo) return ''
-  return Object.keys(roundInfo)
-    .map(key => {
-      const values = Array.isArray(roundInfo[key]) ? roundInfo[key] : [roundInfo[key]];
-      const label = values.length > 1 ? `${key} (${values.length}):` : `${key}:`;
-      return `<div><b>${label}</b> <span class="result-${key.toLowerCase().replace(/\s+/g, '-')}" ></span></div>`;
-    })
-    .join('')
-}
 
 function gameWinner(appState: AppState) {
   // Game winner logic
@@ -413,15 +199,5 @@ function savePlayedGameId(id: string) {
     localStorage.setItem(key, JSON.stringify(ids));
   }
 }
-
-// function getFirstUnansweredKey(roundInfo: { [key: string]: string | string[] }, correctResObject: { [key: string]: string | string[] }): string | undefined {
-//   return Object.keys(roundInfo).find(key => {
-//     const value = roundInfo[key];
-//     if (Array.isArray(value)) {
-//       return value.some(item => !correctResObject[key] || !Array.isArray(correctResObject[key]) || !(correctResObject[key] as string[]).includes(item));
-//     }
-//     return !correctResObject[key];
-//   });
-// }
 
 
