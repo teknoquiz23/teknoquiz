@@ -61,6 +61,12 @@ button {
   transition: background 0.2s;
 }
 button:hover {
-  background: #b52a1c;
+  background: #9a3a37;
+}
+h2 {
+    margin-bottom: 10px;
+}
+h3 {
+    margin-top: 0;
 }
 </style>

@@ -188,12 +188,12 @@ input[type="text"] {
   font-size: 16px;
   font-weight: 500;
   font-family: inherit;
-  background-color: #2ebaff;
   cursor: pointer;
-  transition: border-color 0.25s;
+  transition: background-color 0.25s;
   color: #000;
   border: 1px solid #444;
 }
+
 
 
 button {
@@ -206,14 +206,11 @@ button {
   background-color: #2ebaff;
   cursor: pointer;
   transition: border-color 0.25s;
-  color: #fff;
+  color: #000;
 }
 button:hover {
+  background-color: #2591c7;
 }
-button:focus,
-button:focus-visible {
-}
-
 
 .hints-wrap {
   position: fixed;

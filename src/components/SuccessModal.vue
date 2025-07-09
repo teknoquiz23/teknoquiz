@@ -2,7 +2,7 @@
   <div class="modal-overlay" v-if="visible">
     <div class="modal-content">
       <h2>🎉 Well done! 🎉 </h2>
-      <h3>Do you want to contiue challenging your skills?</h3>
+      <h3>Ready for another challenge?</h3>
       <button @click="nextRound">Play next round</button>
     </div>
   </div>
@@ -42,6 +42,7 @@ export default defineComponent({
   to { opacity: 1; }
 }
 .modal-content {
+  min-width: 400px;
   background: #333;
   padding: 2rem 3rem;
   border-radius: 12px;
@@ -50,13 +51,13 @@ export default defineComponent({
 }
 button {
   margin-top: 1.5rem;
-  background: #4caf50;
-  color: #fff;
-  cursor: pointer;
-  transition: background 0.2s;
 }
-button:hover {
-  background: #388e3c;
+
+h2 {
+    margin-bottom: 10px;
+}
+h3 {
+    margin-top: 0;
 }
 
 </style>
